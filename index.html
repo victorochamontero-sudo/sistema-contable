@@ -1,1484 +1,658 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Mi Sistema Contable — Chile</title>
-<style>
-  * { box-sizing: border-box; }
-  body { font-family: 'Segoe UI', Tahoma, sans-serif; margin: 0; background: #f4f6f9; color: #1f2937; }
-  header { background: linear-gradient(135deg, #1e3a8a, #2563eb); color: white; padding: 20px 30px; box-shadow: 0 2px 8px rgba(0,0,0,0.15); }
-  header h1 { margin: 0; font-size: 1.5rem; }
-  header p { margin: 5px 0 0; font-size: 0.9rem; opacity: 0.9; }
-  .container { max-width: 1400px; margin: 20px auto; padding: 0 20px; }
-  .barra-modo { display: flex; align-items: center; gap: 12px; background: #fff7ed; border: 1px solid #fed7aa; border-radius: 10px; padding: 12px 18px; margin-bottom: 18px; font-size: 0.92rem; }
-  .barra-modo label { display: flex; align-items: center; gap: 8px; cursor: pointer; font-weight: 600; color: #9a3412; }
-  .barra-modo input[type="checkbox"] { width: 18px; height: 18px; cursor: pointer; }
-  .barra-modo .info { color: #7c2d12; font-size: 0.85rem; }
-  .tabs-nav { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 18px; }
-  .tab-btn { padding: 11px 20px; font-size: 0.92rem; font-weight: 600; border-radius: 8px; background: #e5e7eb; color: #374151; border: none; cursor: pointer; transition: 0.15s; }
-  .tab-btn:hover { background: #d1d5db; }
-  .tab-btn.activa { background: #1e40af; color: white; box-shadow: 0 2px 6px rgba(30,64,175,0.3); }
-  .tab-btn.peligro { background: #fee2e2; color: #991b1b; }
-  .tab-btn.peligro.activa { background: #dc2626; color: white; }
-  .tab-btn.peligro:hover { background: #fecaca; }
-  .card { background: white; border-radius: 10px; padding: 22px; margin-bottom: 18px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); border: 1px solid #eef2f7; }
-  .card h2 { margin-top: 0; font-size: 1.15rem; color: #1e3a8a; border-bottom: 2px solid #eef2f7; padding-bottom: 10px; }
-  .card h3 { margin-top: 22px; font-size: 1rem; color: #374151; }
-  .card.peligro { border-left: 4px solid #dc2626; }
-  .card.peligro h2 { color: #991b1b; border-bottom-color: #fecaca; }
-  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; }
-  label { font-size: 0.85rem; font-weight: 600; color: #374151; display: block; margin-bottom: 4px; }
-  input, select { width: 100%; padding: 9px 11px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.9rem; background: white; }
-  input:focus, select:focus { outline: 2px solid #2563eb; border-color: transparent; }
-  button { cursor: pointer; border: none; border-radius: 6px; padding: 9px 16px; font-size: 0.88rem; font-weight: 600; transition: 0.15s; }
-  .btn-primary { background: #2563eb; color: white; }
-  .btn-primary:hover { background: #1d4ed8; }
-  .btn-success { background: #059669; color: white; }
-  .btn-success:hover { background: #047857; }
-  .btn-warning { background: #d97706; color: white; }
-  .btn-warning:hover { background: #b45309; }
-  .btn-danger { background: #dc2626; color: white; }
-  .btn-danger:hover { background: #b91c1c; }
-  .btn-secondary { background: #6b7280; color: white; }
-  .btn-secondary:hover { background: #4b5563; }
-  .btn-sm { padding: 5px 9px; font-size: 0.75rem; }
-  .actions-bar { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 15px; }
-  .tipos-movimiento { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-bottom: 20px; }
-  .tipo-card { background: white; border: 2px solid #e5e7eb; border-radius: 12px; padding: 20px; cursor: pointer; transition: 0.15s; text-align: center; }
-  .tipo-card:hover { border-color: #93c5fd; transform: translateY(-2px); box-shadow: 0 4px 10px rgba(37,99,235,0.1); }
-  .tipo-card.activo { border-color: #2563eb; background: #eff6ff; }
-  .tipo-card .icono { font-size: 2rem; margin-bottom: 8px; }
-  .tipo-card .titulo { font-weight: 700; color: #1e3a8a; margin-bottom: 4px; }
-  .tipo-card .desc { font-size: 0.8rem; color: #6b7280; }
-  table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
-  th, td { padding: 9px 11px; text-align: left; border-bottom: 1px solid #eef2f7; }
-  th { background: #f3f4f6; font-weight: 600; color: #374151; position: sticky; top: 0; }
-  tr:hover { background: #fafbfe; }
-  .table-wrap { overflow-x: auto; max-height: 500px; overflow-y: auto; border-radius: 8px; }
-  .num { text-align: right; font-variant-numeric: tabular-nums; }
-  tfoot td { background: #f6f8fc; font-weight: 700; border-top: 2px solid #ccd5e2; }
-  .msg { padding: 10px 15px; border-radius: 8px; margin-bottom: 12px; font-size: 0.9rem; }
-  .msg-ok { background: #d1fae5; color: #065f46; border: 1px solid #a7f3d0; }
-  .msg-err { background: #fee2e2; color: #991b1b; border: 1px solid #fecaca; }
-  .msg-info { background: #dbeafe; color: #1e40af; border: 1px solid #93c5fd; }
-  .msg-warning { background: #fef3c7; color: #92400e; border: 1px solid #fde68a; }
-  .placeholder { text-align: center; padding: 50px 20px; color: #9ca3af; }
-  .placeholder .grande { font-size: 3rem; margin-bottom: 15px; }
-  .placeholder p { font-size: 0.95rem; line-height: 1.6; max-width: 500px; margin: 0 auto; }
-  .explicacion { background: #fef3c7; border-left: 4px solid #d97706; padding: 12px 16px; border-radius: 6px; margin-top: 10px; font-size: 0.88rem; color: #78350f; }
-  .explicacion strong { color: #92400e; }
-  .explicacion ul { margin: 6px 0 0 18px; padding: 0; }
-  .explicacion li { margin-bottom: 4px; }
-  .metricas { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 20px; }
-  .metric-card { background: white; border: 1px solid #e1e6ef; border-radius: 14px; padding: 20px 22px; box-shadow: 0 3px 12px rgba(21,40,74,0.05); }
-  .metric-card .titulo { font-size: 0.92rem; font-weight: 600; color: #667085; margin-bottom: 10px; }
-  .metric-card .monto { font-size: 1.9rem; font-weight: 700; color: #111827; line-height: 1.1; margin-bottom: 6px; }
-  .metric-card .detalle { font-size: 0.82rem; color: #667085; }
-  .metric-card.positivo .monto { color: #059669; }
-  .metric-card.negativo .monto { color: #dc2626; }
-  .hidden { display: none; }
-  .footer-note { text-align: center; font-size: 0.78rem; color: #6b7280; padding: 15px; }
-  .bloque-borrado { background: #fef2f2; border: 1px solid #fecaca; border-radius: 10px; padding: 18px; margin-bottom: 16px; }
-  .bloque-borrado h3 { margin: 0 0 12px; color: #991b1b; font-size: 1rem; }
-  .bloque-borrado p { margin: 0 0 12px; font-size: 0.85rem; color: #7f1d1d; }
-  @media (max-width: 700px) {
-    .grid { grid-template-columns: 1fr; }
-    .tipos-movimiento { grid-template-columns: repeat(2, 1fr); }
-  }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contabilidad en Acción - Versión Final</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --bg-color: #0b132b; --board-bg: #1c2541; --text: #ffffff;
+            --blue: #007bff; --orange: #fd7e14; --green: #28a745;
+            --purple: #6f42c1; --red: #dc3545; --gold: #ffc107;
+        }
+        body {
+            font-family: 'Montserrat', sans-serif; background-color: var(--bg-color);
+            background-image: radial-gradient(circle at center, #1c2541 0%, #0b132b 100%);
+            color: var(--text); margin: 0; padding: 10px;
+            display: flex; flex-direction: column; align-items: center;
+            min-height: 100vh; overflow-x: hidden;
+        }
+        h1 { text-align: center; margin-bottom: 5px; font-size: 1.8rem; text-shadow: 0 0 10px rgba(255,255,255,0.3);}
+        .subtitle { color: #a0aec0; margin-top: 0; margin-bottom: 15px; text-align: center; font-size: 0.9rem;}
+
+        /* Configuración */
+        #setup-screen {
+            background: rgba(28, 37, 65, 0.95); backdrop-filter: blur(10px);
+            border: 2px solid var(--gold); border-radius: 20px; padding: 20px;
+            width: 100%; max-width: 500px; text-align: center;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.8); z-index: 2000;
+            display: flex; flex-direction: column; align-items: center; box-sizing: border-box;
+        }
+        .input-group { width: 100%; margin-bottom: 15px; text-align: left; }
+        .input-group label { font-weight: 800; color: var(--gold); display: block; margin-bottom: 5px; font-size: 0.9rem;}
+        select, input[type="text"] {
+            width: 100%; padding: 12px; border-radius: 8px; border: 2px solid #4a5568;
+            background: #0b132b; color: white; font-family: inherit; font-size: 1rem; box-sizing: border-box;
+        }
+        select:focus, input[type="text"]:focus { outline: none; border-color: var(--blue); }
+        .player-inputs { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; width: 100%; margin-bottom: 20px;}
+
+        /* Juego */
+        #game-screen { display: none; width: 100%; max-width: 1100px; }
+        .layout { display: flex; gap: 20px; flex-wrap: wrap; justify-content: center; align-items: flex-start; }
+
+        /* Tablero Responsive */
+        .board-container { background: #111; padding: 5px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.8), inset 0 0 0 3px var(--gold); width: 100%; max-width: 600px; box-sizing: border-box;}
+        .board {
+            display: grid; grid-template-columns: repeat(7, 1fr); grid-template-rows: repeat(7, 1fr);
+            gap: 3px; width: 100%; aspect-ratio: 1 / 1; background-color: #0b132b;
+            border-radius: 10px; padding: 5px; position: relative; box-sizing: border-box;
+        }
+        .center-logo {
+            grid-column: 2 / 7; grid-row: 2 / 7; background: linear-gradient(135deg, #1c2541, #0b132b);
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            border-radius: 10px; border: 2px solid rgba(255,255,255,0.1); padding: 10px; overflow: hidden;
+            position: relative;
+        }
+        
+        .center-logo::before {
+            content: ''; position: absolute; width: 150%; height: 150%;
+            background: radial-gradient(circle, rgba(255, 193, 7, 0.15) 0%, transparent 60%);
+            animation: pulseBg 4s infinite; z-index: 0;
+        }
+        @keyframes pulseBg { 0%, 100% { transform: scale(1); opacity: 0.5; } 50% { transform: scale(1.1); opacity: 0.8; } }
+
+        .logo-text { font-size: 1.5rem; font-weight: 900; text-align: center; line-height: 1; color: #fff; z-index: 2; margin-top: 10px; text-shadow: 0 4px 10px rgba(0,0,0,0.5);}
+        .logo-text span { color: var(--gold); font-size: 1.8rem; }
+        .logo-sub { font-size: 0.7rem; color: #a0aec0; font-weight: 600; margin-top: 5px; z-index: 2; text-align: center;}
+
+        .dice-svg { width: 80px; height: 80px; z-index: 2; filter: drop-shadow(0 5px 10px rgba(0,0,0,0.6)); animation: floatDice 3s ease-in-out infinite; }
+        @keyframes floatDice { 0%, 100% { transform: translateY(0) rotate(0deg); } 50% { transform: translateY(-5px) rotate(5deg); } }
+
+        .cell {
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            border-radius: 6px; font-size: 0.5rem; font-weight: 800; text-align: center;
+            position: relative; box-shadow: inset 0 -3px 0 rgba(0,0,0,0.3), 0 1px 3px rgba(0,0,0,0.5);
+            color: white; padding: 1px; z-index: 5;
+        }
+        .cell i { font-size: 1rem; margin-bottom: 1px; text-shadow: 0 1px 3px rgba(0,0,0,0.5); }
+        .start { background: linear-gradient(180deg, #28a745, #1e7e34); }
+        .blue { background: linear-gradient(180deg, #007bff, #0056b3); }
+        .orange { background: linear-gradient(180deg, #fd7e14, #d9650d); }
+        .green { background: linear-gradient(180deg, #28a745, #1e7e34); }
+        .purple { background: linear-gradient(180deg, #6f42c1, #59359a); }
+        .red { background: linear-gradient(180deg, #dc3545, #bd2130); }
+        .event { background: linear-gradient(180deg, #ffc107, #d39e00); color: #000; box-shadow: inset 0 -3px 0 rgba(0,0,0,0.2), 0 0 10px rgba(255, 193, 7, 0.5); }
+        .event i { color: #000; text-shadow: none;}
+
+        /* Fichas con forma de persona */
+        .player-token {
+            position: absolute; width: 22px; height: 22px; border-radius: 50%;
+            border: 2px solid #fff; box-shadow: 0 2px 5px rgba(0,0,0,0.8);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.9rem; color: #000; z-index: 10;
+            top: 50%; left: 50%;
+        }
+
+        /* Controles */
+        .controls {
+            background: rgba(28, 37, 65, 0.9); backdrop-filter: blur(10px);
+            border: 2px solid rgba(255,255,255,0.1); border-radius: 20px;
+            padding: 15px; width: 100%; max-width: 600px; display: flex; flex-direction: column; gap: 10px; box-sizing: border-box;
+        }
+        .turn-indicator {
+            background: var(--gold); color: #000; padding: 8px; border-radius: 10px;
+            text-align: center; font-weight: 900; font-size: 1rem; text-transform: uppercase;
+            box-shadow: 0 0 15px rgba(255, 193, 7, 0.4); transition: all 0.3s;
+        }
+        .scoreboard { display: flex; flex-direction: column; gap: 5px; max-height: 150px; overflow-y: auto; }
+        .score-row {
+            display: flex; justify-content: space-between; align-items: center;
+            background: #0b132b; padding: 8px 12px; border-radius: 8px;
+            border-left: 5px solid #4a5568; transition: all 0.3s; font-size: 0.9rem;
+        }
+        .score-row.active { border-left-color: var(--gold); background: #1c2541; transform: scale(1.01); }
+        .score-name { font-weight: 800; display: flex; align-items: center; gap: 5px;}
+        .score-pts { font-weight: 900; color: var(--gold); }
+
+        button {
+            background: linear-gradient(180deg, #007bff, #0056b3); color: white; border: none;
+            padding: 12px; font-size: 1rem; font-weight: 900; border-radius: 10px; cursor: pointer;
+            transition: all 0.2s; font-family: inherit; box-shadow: 0 4px 0 #003d80, 0 5px 10px rgba(0,0,0,0.5);
+            text-transform: uppercase; letter-spacing: 1px; width: 100%;
+        }
+        button:hover:not(:disabled) { transform: translateY(-2px); }
+        button:active:not(:disabled) { transform: translateY(4px); box-shadow: 0 0px 0 #003d80; }
+        button:disabled { background: #4a5568; box-shadow: 0 4px 0 #2d3748; cursor: not-allowed; opacity: 0.7;}
+        
+        .btn-restart { background: linear-gradient(180deg, #6c757d, #495057); box-shadow: 0 4px 0 #343a40; font-size: 0.8rem; padding: 8px; }
+
+        /* Modal de Preguntas */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.9); backdrop-filter: blur(5px);
+            display: none; justify-content: center; align-items: center; z-index: 1000; padding: 10px; box-sizing: border-box;
+        }
+        .modal-content {
+            background: #1c2541; border-radius: 15px; width: 100%; max-width: 500px;
+            padding: 20px; text-align: center; border: 2px solid rgba(255,255,255,0.1);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.8); max-height: 90vh; overflow-y: auto;
+        }
+        .card-header { display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 15px; font-weight: 900; font-size: 1rem; text-transform: uppercase; }
+        .card-icon { font-size: 1.5rem; }
+        .question-text { font-size: 1.1rem; line-height: 1.4; margin-bottom: 15px; font-weight: 600; }
+        .options { display: flex; flex-direction: column; gap: 8px; }
+        .option-btn {
+            background: #2d3748; color: white; padding: 12px; border: 2px solid #4a5568;
+            border-radius: 10px; cursor: pointer; transition: all 0.2s; font-size: 0.95rem;
+            text-align: left; font-weight: 600;
+        }
+        .option-btn:hover:not(:disabled) { background: #4a5568; }
+        .correct { background: var(--green) !important; border-color: #fff !important; box-shadow: 0 0 15px rgba(40, 167, 69, 0.5); }
+        .incorrect { background: var(--red) !important; border-color: #fff !important; box-shadow: 0 0 15px rgba(220, 53, 69, 0.5); }
+        .feedback { margin-top: 15px; font-weight: 800; font-size: 1.1rem; min-height: 25px; }
+        .btn-continue { margin-top: 15px; background: linear-gradient(180deg, #28a745, #1e7e34); box-shadow: 0 4px 0 #155724; display: none; }
+
+        /* Ganador */
+        #winner-screen {
+            display: none; flex-direction: column; align-items: center; justify-content: center;
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(11, 19, 43, 0.98); z-index: 3000; backdrop-filter: blur(10px);
+            padding: 15px; box-sizing: border-box; overflow-y: auto;
+        }
+        .trophy-icon { font-size: 5rem; color: var(--gold); text-shadow: 0 0 30px var(--gold); animation: bounce 2s infinite; margin-bottom: 10px;}
+        @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-15px); } }
+        .winner-title { font-size: 2rem; font-weight: 900; background: linear-gradient(90deg, #fff, var(--gold)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin: 0; text-align: center;}
+        .podium { display: flex; align-items: flex-end; justify-content: center; gap: 8px; margin-top: 20px; height: 220px; width: 100%; max-width: 600px;}
+        .podium-step { display: flex; flex-direction: column; align-items: center; width: 90px; }
+        .podium-name { font-weight: 800; margin-bottom: 5px; text-align: center; font-size: 0.8rem; word-break: break-word;}
+        .podium-score { color: var(--gold); font-weight: 900; font-size: 1rem; margin-bottom: 5px;}
+        .podium-block { width: 100%; border-radius: 8px 8px 0 0; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: 900; color: rgba(0,0,0,0.5); box-shadow: inset 0 0 15px rgba(0,0,0,0.3); }
+        .p1 .podium-block { height: 140px; background: linear-gradient(180deg, var(--gold), #d39e00); }
+        .p2 .podium-block { height: 100px; background: linear-gradient(180deg, #e2e8f0, #a0aec0); }
+        .p3 .podium-block { height: 70px; background: linear-gradient(180deg, #cd7f32, #8c5a2b); }
+        .p4 .podium-block, .p5 .podium-block, .p6 .podium-block { height: 40px; background: #2d3748; color: white; font-size: 1rem;}
+
+        /* Ajustes para PC */
+        @media (min-width: 768px) {
+            .board-container { max-width: 600px; }
+            .controls { width: 320px; max-width: 320px; }
+            .layout { flex-direction: row; }
+            .logo-text { font-size: 2.2rem; }
+            .logo-text span { font-size: 2.6rem; }
+            .dice-svg { width: 120px; height: 120px; }
+        }
+    </style>
 </head>
 <body>
-<header>
-  <h1>📚 Mi Sistema Contable — Chile</h1>
-  <p>Nivel 1 · Libro Diario · Mayor · Balance · Estado de Resultados</p>
-</header>
 
-<div class="container">
+    <div id="setup-screen">
+        <h1>Contabilidad en Acción</h1>
+        <p class="subtitle">Configura la partida</p>
+        
+        <div class="input-group">
+            <label>Puntaje Meta para Ganar:</label>
+            <select id="goal-score">
+                <option value="10">Rápida (10 Pts)</option>
+                <option value="20" selected>Normal (20 Pts)</option>
+                <option value="30">Larga (30 Pts)</option>
+                <option value="50">Maratón (50 Pts)</option>
+            </select>
+        </div>
 
-  <div class="barra-modo">
-    <label>
-      <input type="checkbox" id="modoEstudiante">
-      🎓 Modo estudiante
-    </label>
-    <span class="info">Actívalo para ver explicaciones didácticas en cada asiento contable</span>
-  </div>
+        <div class="input-group">
+            <label>¿Cuántos jugadores van a jugar? (1 a 6)</label>
+            <select id="num-players" onchange="generateInputs()">
+                <option value="1">1 Jugador (Práctica)</option>
+                <option value="2" selected>2 Jugadores</option>
+                <option value="3">3 Jugadores</option>
+                <option value="4">4 Jugadores</option>
+                <option value="5">5 Jugadores</option>
+                <option value="6">6 Jugadores</option>
+            </select>
+        </div>
 
-  <div class="tabs-nav">
-    <button class="tab-btn activa" data-vista="movimientos">📝 Movimientos</button>
-    <button class="tab-btn" data-vista="diario">📒 Libro Diario</button>
-    <button class="tab-btn" data-vista="mayor">📗 Libro Mayor</button>
-    <button class="tab-btn" data-vista="balance">⚖️ Balance 8 columnas</button>
-    <button class="tab-btn" data-vista="resultados">📈 Estado de Resultados</button>
-    <button class="tab-btn" data-vista="resumen">📊 Resumen del período</button>
-    <button class="tab-btn peligro" data-vista="borrado">🧨 Borrado</button>
-  </div>
+        <div class="player-inputs" id="player-inputs"></div>
 
-  <div id="vista-movimientos">
-    <div class="card">
-      <h2>📝 Registrar movimiento</h2>
-      <p style="font-size:0.88rem; color:#6b7280; margin-top:0;">
-        Elige qué tipo de movimiento quieres registrar. Cada uno genera un asiento contable automático.
-      </p>
-      <div class="tipos-movimiento">
-        <div class="tipo-card activo" data-tipo="compra">
-          <div class="icono">🛒</div>
-          <div class="titulo">Compra</div>
-          <div class="desc">Mercadería o insumos</div>
-        </div>
-        <div class="tipo-card" data-tipo="venta">
-          <div class="icono">💰</div>
-          <div class="titulo">Venta</div>
-          <div class="desc">Productos o servicios</div>
-        </div>
-        <div class="tipo-card" data-tipo="gasto">
-          <div class="icono">💸</div>
-          <div class="titulo">Gasto</div>
-          <div class="desc">Arriendo, luz, sueldos...</div>
-        </div>
-        <div class="tipo-card" data-tipo="movimiento">
-          <div class="icono">🏦</div>
-          <div class="titulo">Movimiento caja/banco</div>
-          <div class="desc">Ingresos y egresos</div>
-        </div>
-      </div>
-      <div id="msg-form-mov" style="margin-top:18px;"></div>
-      <div id="form-movimiento" style="margin-top:18px;">
-        <h3 id="form-titulo">Registrar Compra</h3>
-        <div id="form-campos" class="grid"></div>
-        <div class="actions-bar">
-          <button class="btn-primary" onclick="guardarMovimiento()">💾 Guardar movimiento</button>
-          <button class="btn-secondary" onclick="limpiarFormMovimiento()">🧹 Limpiar formulario</button>
-        </div>
-        <div id="preview-asiento" class="hidden" style="margin-top:20px;">
-          <h3 style="font-size:0.95rem;">📖 Asiento contable que se generará</h3>
-          <div id="preview-asiento-contenido"></div>
-        </div>
-      </div>
+        <button onclick="startGame()" style="background: linear-gradient(180deg, #28a745, #1e7e34); box-shadow: 0 4px 0 #155724;">¡Comenzar Juego!</button>
     </div>
 
-    <div class="card">
-      <h2>📋 Movimientos registrados</h2>
-      <div class="table-wrap">
-        <table id="tabla-movimientos">
-          <thead>
-            <tr>
-              <th>Fecha</th>
-              <th>Tipo</th>
-              <th>Doc.</th>
-              <th>Detalle</th>
-              <th>RUT / Tercero</th>
-              <th>Folio</th>
-              <th class="num">Neto</th>
-              <th class="num">IVA</th>
-              <th class="num">Total</th>
-              <th>Pago</th>
-              <th>Acciones</th>
-            </tr>
-          </thead>
-          <tbody id="cuerpo-movimientos"></tbody>
-          <tfoot id="pie-movimientos"></tfoot>
-        </table>
-      </div>
-      <p class="footer-note">Los movimientos se guardan en tu navegador.</p>
+    <div id="game-screen">
+        <div class="layout">
+            <div class="board-container">
+                <div class="board" id="board">
+                    <div class="center-logo">
+                        <svg class="dice-svg" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+                            <g transform="translate(40, 30) rotate(-15)">
+                                <rect x="0" y="0" width="80" height="80" rx="15" fill="#007bff" stroke="#0056b3" stroke-width="4"/>
+                                <circle cx="20" cy="20" r="6" fill="#fff"/>
+                                <circle cx="60" cy="20" r="6" fill="#fff"/>
+                                <circle cx="40" cy="40" r="6" fill="#fff"/>
+                                <circle cx="20" cy="60" r="6" fill="#fff"/>
+                                <circle cx="60" cy="60" r="6" fill="#fff"/>
+                            </g>
+                            <g transform="translate(90, 80) rotate(15)">
+                                <rect x="0" y="0" width="80" height="80" rx="15" fill="#ffc107" stroke="#d39e00" stroke-width="4"/>
+                                <circle cx="20" cy="20" r="6" fill="#0b132b"/>
+                                <circle cx="60" cy="60" r="6" fill="#0b132b"/>
+                                <circle cx="40" cy="40" r="6" fill="#0b132b"/>
+                            </g>
+                            <text x="150" y="50" font-family="Montserrat" font-size="30" font-weight="900" fill="#fff" opacity="0.8">+</text>
+                        </svg>
+                        
+                        <div class="logo-text">CONTABILIDAD<br><span>EN ACCIÓN</span></div>
+                        <div class="logo-sub">¡Llega a la meta de puntos!</div>
+                    </div>
+                </div>
+            </div>
+            <div class="controls">
+                <div class="turn-indicator" id="turn-indicator">Turno de: Jugador 1</div>
+                <div style="text-align: center; font-weight: 900; color: var(--gold); margin-bottom: 5px; font-size: 0.9rem;" id="goal-display">Meta: 20 Pts</div>
+                <button id="roll-btn" onclick="rollDice()"><i class="fas fa-dice"></i> Lanzar Dado</button>
+                <div style="font-size: 0.8rem; color: #a0aec0; text-align: center;">PUNTAJES</div>
+                <div class="scoreboard" id="scoreboard"></div>
+                <button class="btn-restart" onclick="location.reload()"><i class="fas fa-undo"></i> Nueva Partida</button>
+            </div>
+        </div>
     </div>
-  </div>
 
-  <div id="vista-diario" class="hidden">
-    <div class="card">
-      <h2>📒 Libro Diario</h2>
-      <p style="font-size:0.88rem; color:#6b7280; margin-top:0;">
-        Asientos contables generados automáticamente desde tus movimientos.
-      </p>
-      <div class="actions-bar" style="margin-bottom:15px;">
-        <button class="btn-success" onclick="exportarDiarioCSV()">📤 Exportar CSV</button>
-        <button class="btn-primary" onclick="window.print()">🖨 Imprimir / PDF</button>
-      </div>
-      <div id="diario-contenido"></div>
+    <div class="modal-overlay" id="card-modal">
+        <div class="modal-content">
+            <div class="card-header" id="card-header">
+                <i class="fas fa-question-circle card-icon"></i>
+                <span id="card-title">PREGUNTA</span>
+            </div>
+            <div class="question-text" id="question-text">Cargando...</div>
+            <div class="options" id="options-container"></div>
+            <div class="feedback" id="feedback-text"></div>
+            <button class="btn-continue" id="continue-btn">Continuar <i class="fas fa-arrow-right"></i></button>
+        </div>
     </div>
-  </div>
 
-  <div id="vista-mayor" class="hidden">
-    <div class="card">
-      <h2>📗 Libro Mayor</h2>
-      <p style="font-size:0.88rem; color:#6b7280; margin-top:0;">
-        Cada cuenta con sus movimientos y saldo final.
-      </p>
-      <div class="actions-bar" style="margin-bottom:15px;">
-        <button class="btn-success" onclick="exportarMayorCSV()">📤 Exportar CSV</button>
-        <button class="btn-primary" onclick="window.print()">🖨 Imprimir / PDF</button>
-      </div>
-      <div id="mayor-contenido"></div>
+    <div id="winner-screen">
+        <i class="fas fa-trophy trophy-icon"></i>
+        <h2 class="winner-title">¡TENEMOS UN GANADOR!</h2>
+        <p style="color:#a0aec0; font-size:1rem;">Se alcanzó la meta de puntos</p>
+        <div class="podium" id="podium"></div>
+        <button onclick="location.reload()" style="margin-top: 20px; background: linear-gradient(180deg, #007bff, #0056b3); box-shadow: 0 4px 0 #003d80; width: 200px;">Jugar de Nuevo</button>
     </div>
-  </div>
 
-  <div id="vista-balance" class="hidden">
-    <div class="card">
-      <h2>⚖️ Balance de 8 columnas</h2>
-      <p style="font-size:0.88rem; color:#6b7280; margin-top:0;">
-        Sumas Debe · Sumas Haber · Saldos Deudores · Saldos Acreedores · Activo · Pasivo · Pérdida · Ganancia
-      </p>
-      <div class="actions-bar" style="margin-bottom:15px;">
-        <button class="btn-success" onclick="exportarBalanceCSV()">📤 Exportar CSV</button>
-        <button class="btn-primary" onclick="window.print()">🖨 Imprimir / PDF</button>
-      </div>
-      <div id="balance-contenido"></div>
-    </div>
-  </div>
+    <script>
+        // --- CONFIGURACIÓN DEL TABLERO ---
+        // Se elimina la casilla "META". Ahora la casilla 7 es un Desafío.
+        const boardData = [
+            { type: "start", text: "INICIO", icon: "fa-flag-checkered" }, { type: "blue", text: "Pregunta", icon: "fa-question" },
+            { type: "orange", text: "Caso", icon: "fa-clipboard-list" }, { type: "green", text: "Registro", icon: "fa-book" },
+            { type: "blue", text: "Pregunta", icon: "fa-question" }, { type: "blue", text: "Pregunta", icon: "fa-question" },
+            { type: "event", text: "Avanza 2", icon: "fa-forward" }, { type: "red", text: "Desafío", icon: "fa-trophy" }, // <--- CAMBIO AQUÍ
+            { type: "orange", text: "Caso", icon: "fa-clipboard-list" }, { type: "blue", text: "Pregunta", icon: "fa-question" },
+            { type: "green", text: "Registro", icon: "fa-book" }, { type: "red", text: "Desafío", icon: "fa-trophy" },
+            { type: "orange", text: "Caso", icon: "fa-clipboard-list" }, { type: "blue", text: "Pregunta", icon: "fa-question" },
+            { type: "event", text: "Retrocede 2", icon: "fa-backward" }, { type: "red", text: "Desafío", icon: "fa-trophy" },
+            { type: "purple", text: "Estados", icon: "fa-chart-bar" }, { type: "green", text: "Registro", icon: "fa-book" },
+            { type: "orange", text: "Caso", icon: "fa-clipboard-list" }, { type: "blue", text: "Pregunta", icon: "fa-question" },
+            { type: "event", text: "Avanza 2", icon: "fa-forward" }, { type: "red", text: "Desafío", icon: "fa-trophy" },
+            { type: "red", text: "Desafío", icon: "fa-trophy" }, { type: "orange", text: "Caso", icon: "fa-clipboard-list" }
+        ];
 
-  <div id="vista-resultados" class="hidden">
-    <div class="card">
-      <h2>📈 Estado de Resultados</h2>
-      <p style="font-size:0.88rem; color:#6b7280; margin-top:0;">
-        Ingresos − Costos = Margen Bruto · Margen Bruto − Gastos = Utilidad o Pérdida
-      </p>
-      <div class="grid" style="max-width:500px; margin-bottom:15px;">
-        <div>
-          <label>Desde</label>
-          <input type="date" id="res-desde">
-        </div>
-        <div>
-          <label>Hasta</label>
-          <input type="date" id="res-hasta">
-        </div>
-        <div>
-          <label>&nbsp;</label>
-          <button class="btn-secondary" onclick="limpiarFiltroResultados()">Limpiar filtro</button>
-        </div>
-      </div>
-      <div class="actions-bar" style="margin-bottom:15px;">
-        <button class="btn-success" onclick="exportarResultadosCSV()">📤 Exportar CSV</button>
-        <button class="btn-primary" onclick="window.print()">🖨 Imprimir / PDF</button>
-      </div>
-      <div id="resultados-contenido"></div>
-    </div>
-  </div>
+        // --- BANCO DE PREGUNTAS (Muestra representativa) ---
+        const cardsDB = {
+            blue: [{ q: "¿Cuál es un Activo Corriente?", options: ["A) Terrenos", "B) Cuentas por Cobrar", "C) Edificios", "D) Maquinaria"], correct: 1, points: 1 }],
+            orange: [{ q: "Compra $500.000 + IVA a 30 días. ¿Monto Proveedores?", options: ["A) $500.000", "B) $595.000", "C) $600.000", "D) $550.000"], correct: 1, points: 2 }],
+            green: [{ q: "Regla de la partida doble:", options: ["A) Debe = Haber", "B) Solo Debe", "C) Haber mayor", "D) Debe mayor"], correct: 0, points: 2 }],
+            purple: [{ q: "Ingresos $900.000 | Gastos $650.000. Utilidad:", options: ["A) $250.000", "B) $350.000", "C) $150.000", "D) $1.550.000"], correct: 0, points: 2 }],
+            red: [{ q: "Error en registros. ¿Qué hacer primero?", options: ["A) Revisar respaldos", "B) Borrar cuentas", "C) Ignorar", "D) Cuadrar a la fuerza"], correct: 0, points: 3 }]
+        };
 
-  <div id="vista-resumen" class="hidden">
-    <div class="card">
-      <h2>📊 Resumen del período</h2>
-      <div class="metricas">
-        <div class="metric-card">
-          <div class="titulo">Total ventas</div>
-          <div class="monto" id="m-ventas">$0</div>
-          <div class="detalle" id="m-ventas-cant">0 documentos</div>
-        </div>
-        <div class="metric-card">
-          <div class="titulo">Total compras</div>
-          <div class="monto" id="m-compras">$0</div>
-          <div class="detalle" id="m-compras-cant">0 documentos</div>
-        </div>
-        <div class="metric-card">
-          <div class="titulo">Total gastos</div>
-          <div class="monto" id="m-gastos">$0</div>
-          <div class="detalle" id="m-gastos-cant">0 movimientos</div>
-        </div>
-        <div class="metric-card">
-          <div class="titulo">Utilidad / Pérdida</div>
-          <div class="monto" id="m-utilidad">$0</div>
-          <div class="detalle">Ingresos − Costos − Gastos</div>
-        </div>
-      </div>
-      <div class="metricas">
-        <div class="metric-card">
-          <div class="titulo">IVA a pagar</div>
-          <div class="monto" id="m-iva">$0</div>
-          <div class="detalle">Débito − Crédito</div>
-        </div>
-        <div class="metric-card">
-          <div class="titulo">Movimientos de caja</div>
-          <div class="monto" id="m-caja">$0</div>
-          <div class="detalle">Efectivo</div>
-        </div>
-        <div class="metric-card">
-          <div class="titulo">Movimientos de banco</div>
-          <div class="monto" id="m-banco">$0</div>
-          <div class="detalle">Cuenta bancaria</div>
-        </div>
-      </div>
-      <p class="footer-note">Los totales se actualizan automáticamente cuando registras movimientos.</p>
-    </div>
-  </div>
+        // --- VARIABLES GLOBALES ---
+        let players = [];
+        let currentPlayerIndex = 0;
+        let isMoving = false;
+        let targetScore = 20;
+        let usedQuestions = new Set(); 
+        let currentQuestionData = null;
+        let previousPosition = 0; 
 
-  <div id="vista-borrado" class="hidden">
-    <div class="card peligro">
-      <h2>🧨 Zona de borrado</h2>
-      <p style="font-size:0.88rem; color:#7f1d1d; margin-top:0;">
-        ⚠️ Estas acciones <strong>son irreversibles</strong>. Antes de borrar, el sistema descargará automáticamente un respaldo JSON de seguridad.
-      </p>
+        // --- SONIDOS ---
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        function playSound(type) {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            const oscillator = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            oscillator.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            
+            if (type === 'correct') {
+                oscillator.type = 'sine';
+                oscillator.frequency.setValueAtTime(880, audioCtx.currentTime);
+                oscillator.frequency.exponentialRampToValueAtTime(1760, audioCtx.currentTime + 0.1);
+                gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+            } else if (type === 'wrong') {
+                oscillator.type = 'sawtooth';
+                oscillator.frequency.setValueAtTime(150, audioCtx.currentTime);
+                gainNode.gain.setValueAtTime(0.2, audioCtx.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+            } else if (type === 'win') {
+                oscillator.type = 'triangle';
+                oscillator.frequency.setValueAtTime(440, audioCtx.currentTime);
+                oscillator.frequency.setValueAtTime(554, audioCtx.currentTime + 0.1);
+                oscillator.frequency.setValueAtTime(659, audioCtx.currentTime + 0.2);
+                oscillator.frequency.setValueAtTime(880, audioCtx.currentTime + 0.3);
+                gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.6);
+                oscillator.stop(audioCtx.currentTime + 0.6);
+                oscillator.start();
+                return;
+            }
+            oscillator.start();
+            oscillator.stop(audioCtx.currentTime + 0.3);
+        }
 
-      <div class="bloque-borrado">
-        <h3>🗑 Borrar por tipo de movimiento</h3>
-        <p>Elige qué tipo de registros quieres eliminar. Los demás se conservan.</p>
-        <div class="actions-bar">
-          <button class="btn-danger" onclick="borrarPorTipo('compra')">🗑 Borrar solo COMPRAS (<span id="cnt-compra">0</span>)</button>
-          <button class="btn-danger" onclick="borrarPorTipo('venta')">🗑 Borrar solo VENTAS (<span id="cnt-venta">0</span>)</button>
-          <button class="btn-danger" onclick="borrarPorTipo('gasto')">🗑 Borrar solo GASTOS (<span id="cnt-gasto">0</span>)</button>
-          <button class="btn-danger" onclick="borrarPorTipo('movimiento')">🗑 Borrar solo CAJA/BANCO (<span id="cnt-movimiento">0</span>)</button>
-        </div>
-      </div>
+        // --- INICIALIZACIÓN ---
+        function generateInputs() {
+            const num = parseInt(document.getElementById('num-players').value);
+            const container = document.getElementById('player-inputs');
+            container.innerHTML = '';
+            for (let i = 1; i <= num; i++) {
+                const input = document.createElement('input');
+                input.type = 'text';
+                input.id = `p-name-${i}`;
+                input.placeholder = `Nombre ${i}`;
+                input.value = `Jugador ${i}`;
+                container.appendChild(input);
+            }
+        }
 
-      <div class="bloque-borrado">
-        <h3>🗑 Borrar por rango de fechas</h3>
-        <p>Elimina los movimientos cuya fecha esté entre las fechas indicadas (incluyendo ambas).</p>
-        <div class="grid" style="max-width:600px;">
-          <div>
-            <label>Desde</label>
-            <input type="date" id="del-desde">
-          </div>
-          <div>
-            <label>Hasta</label>
-            <input type="date" id="del-hasta">
-          </div>
-        </div>
-        <div class="actions-bar">
-          <button class="btn-danger" onclick="borrarPorRango()">🗑 Borrar movimientos en este rango</button>
-        </div>
-      </div>
+        function startGame() {
+            const num = parseInt(document.getElementById('num-players').value);
+            targetScore = parseInt(document.getElementById('goal-score').value);
+            document.getElementById('goal-display').innerText = `Meta: ${targetScore} Pts`;
+            
+            const colors = ['#ffc107', '#007bff', '#dc3545', '#28a745', '#6f42c1', '#fd7e14'];
+            players = [];
+            for (let i = 1; i <= num; i++) {
+                const name = document.getElementById(`p-name-${i}`).value || `Jugador ${i}`;
+                players.push({ id: i - 1, name: name, score: 0, position: 0, color: colors[i - 1] });
+            }
+            usedQuestions.clear(); 
 
-      <div class="bloque-borrado">
-        <h3>🧹 Borrar TODOS los movimientos</h3>
-        <p>Elimina todos los movimientos pero conserva el catálogo de configuraciones.</p>
-        <div class="actions-bar">
-          <button class="btn-danger" onclick="borrarTodosMovimientos()">🧹 Borrar TODOS los movimientos (<span id="cnt-total">0</span>)</button>
-        </div>
-      </div>
+            document.getElementById('setup-screen').style.display = 'none';
+            document.getElementById('game-screen').style.display = 'block';
+            initBoard();
+            updateTurn();
+        }
 
-      <div class="bloque-borrado" style="background:#fef2f2; border-color:#991b1b;">
-        <h3>🧨 Borrar TODO el sistema</h3>
-        <p>Elimina TODOS los movimientos y reinicia el sistema a cero. Se descargará un respaldo antes de borrar.</p>
-        <div class="actions-bar">
-          <button class="btn-danger" onclick="borrarTodoElSistema()" style="background:#7f1d1d;">🧨 Borrar TODO el sistema</button>
-        </div>
-      </div>
-    </div>
-  </div>
+        // --- TABLERO ---
+        const boardElement = document.getElementById('board');
+        function initBoard() {
+            document.querySelectorAll('.cell').forEach(e => e.remove());
+            boardData.forEach((cell, index) => {
+                const cellDiv = document.createElement('div');
+                cellDiv.className = `cell ${cell.type}`;
+                cellDiv.id = `cell-${index}`;
+                cellDiv.innerHTML = `<i class="fas ${cell.icon}"></i><span>${cell.text}</span>`;
+                if (index <= 6) { cellDiv.style.gridRow = '1'; cellDiv.style.gridColumn = `${index + 1}`; }
+                else if (index >= 7 && index <= 11) { cellDiv.style.gridRow = `${index - 5}`; cellDiv.style.gridColumn = '7'; }
+                else if (index >= 12 && index <= 18) { cellDiv.style.gridRow = '7'; cellDiv.style.gridColumn = `${19 - index}`; }
+                else if (index >= 19 && index <= 23) { cellDiv.style.gridRow = `${25 - index}`; cellDiv.style.gridColumn = '1'; }
+                boardElement.appendChild(cellDiv);
+            });
+            renderPlayers();
+        }
 
-</div>
-<script>
-var PLAN_CUENTAS = {
-  '1101': { nombre: 'Caja', tipo: 'activo', grupo: 'disponible' },
-  '1102': { nombre: 'Banco', tipo: 'activo', grupo: 'disponible' },
-  '1201': { nombre: 'Clientes', tipo: 'activo', grupo: 'por_cobrar' },
-  '1202': { nombre: 'Documentos por cobrar', tipo: 'activo', grupo: 'por_cobrar' },
-  '1301': { nombre: 'IVA Crédito Fiscal', tipo: 'activo', grupo: 'impuestos' },
-  '1401': { nombre: 'Mercaderías', tipo: 'activo', grupo: 'inventario' },
-  '1501': { nombre: 'Mobiliario y equipos', tipo: 'activo', grupo: 'fijo' },
-  '1502': { nombre: 'Vehículos', tipo: 'activo', grupo: 'fijo' },
-  '2101': { nombre: 'Proveedores', tipo: 'pasivo', grupo: 'por_pagar' },
-  '2102': { nombre: 'Documentos por pagar', tipo: 'pasivo', grupo: 'por_pagar' },
-  '2201': { nombre: 'IVA Débito Fiscal', tipo: 'pasivo', grupo: 'impuestos' },
-  '2301': { nombre: 'Remuneraciones por pagar', tipo: 'pasivo', grupo: 'remuneraciones' },
-  '2302': { nombre: 'Retenciones (AFP, salud)', tipo: 'pasivo', grupo: 'remuneraciones' },
-  '3101': { nombre: 'Capital', tipo: 'patrimonio', grupo: 'capital' },
-  '3201': { nombre: 'Resultados acumulados', tipo: 'patrimonio', grupo: 'resultados' },
-  '3301': { nombre: 'Resultado del ejercicio', tipo: 'patrimonio', grupo: 'resultados' },
-  '4101': { nombre: 'Ventas de productos', tipo: 'ingreso', grupo: 'operacional' },
-  '4102': { nombre: 'Prestación de servicios', tipo: 'ingreso', grupo: 'operacional' },
-  '4103': { nombre: 'Otros ingresos', tipo: 'ingreso', grupo: 'no_operacional' },
-  '5101': { nombre: 'Costo de ventas', tipo: 'costo', grupo: 'operacional' },
-  '5102': { nombre: 'Costo de servicios', tipo: 'costo', grupo: 'operacional' },
-  '6101': { nombre: 'Remuneraciones', tipo: 'gasto', grupo: 'administracion' },
-  '6102': { nombre: 'Arriendo', tipo: 'gasto', grupo: 'administracion' },
-  '6103': { nombre: 'Servicios básicos', tipo: 'gasto', grupo: 'administracion' },
-  '6104': { nombre: 'Gastos de administración', tipo: 'gasto', grupo: 'administracion' },
-  '6105': { nombre: 'Gastos de venta', tipo: 'gasto', grupo: 'venta' },
-  '6106': { nombre: 'Gastos financieros', tipo: 'gasto', grupo: 'financiero' }
-};
+        function renderPlayers() {
+            document.querySelectorAll('.player-token').forEach(el => el.remove());
+            const playersInCell = {};
+            players.forEach(p => {
+                if (!playersInCell[p.position]) playersInCell[p.position] = [];
+                playersInCell[p.position].push(p);
+            });
+            for (const pos in playersInCell) {
+                const cell = document.getElementById(`cell-${pos}`);
+                const playersHere = playersInCell[pos];
+                playersHere.forEach((p, i) => {
+                    const token = document.createElement('div');
+                    token.className = 'player-token';
+                    token.style.backgroundColor = p.color;
+                    // FICHA CON FORMA DE PERSONA
+                    token.innerHTML = '<i class="fas fa-user" style="color: #fff;"></i>'; 
+                    const offset = i * 8;
+                    token.style.transform = `translate(calc(-50% + ${offset}px), calc(-50% - ${offset}px))`;
+                    cell.appendChild(token);
+                });
+            }
+        }
 
-var movimientos = [];
-var modoEstudianteActivo = false;
-var tipoSeleccionado = 'compra';
-var STORAGE_MOV = 'contabilidad_movimientos_v1';
+        // --- TURNOS ---
+        function updateTurn() {
+            const currentPlayer = players[currentPlayerIndex];
+            document.getElementById('turn-indicator').innerText = `Turno de: ${currentPlayer.name}`;
+            document.getElementById('turn-indicator').style.backgroundColor = currentPlayer.color;
+            const scoreboard = document.getElementById('scoreboard');
+            scoreboard.innerHTML = '';
+            players.forEach((p, idx) => {
+                const row = document.createElement('div');
+                row.className = `score-row ${idx === currentPlayerIndex ? 'active' : ''}`;
+                // ICONO DE PERSONA EN EL MARCADOR
+                row.innerHTML = `<div class="score-name" style="color: ${p.color}"><i class="fas fa-user"></i> ${p.name}</div><div class="score-pts">${p.score} / ${targetScore}</div>`;
+                scoreboard.appendChild(row);
+            });
+            document.getElementById('roll-btn').disabled = false;
+            document.getElementById('roll-btn').innerHTML = '<i class="fas fa-dice"></i> Lanzar Dado';
+        }
 
-function cargarMovimientos() {
-  try {
-    var data = localStorage.getItem(STORAGE_MOV);
-    movimientos = data ? JSON.parse(data) : [];
-  } catch(e) { movimientos = []; }
-}
-function guardarMovimientos() {
-  localStorage.setItem(STORAGE_MOV, JSON.stringify(movimientos));
-}
+        // --- LÓGICA DEL JUEGO ---
+        function rollDice() {
+            if (isMoving) return;
+            isMoving = true;
+            
+            const currentPlayer = players[currentPlayerIndex];
+            previousPosition = currentPlayer.position; 
 
-function cambiarVista(vista) {
-  ['movimientos','diario','mayor','balance','resultados','resumen','borrado'].forEach(function(v) {
-    var el = document.getElementById('vista-' + v);
-    if (el) el.classList.toggle('hidden', v !== vista);
-  });
-  document.querySelectorAll('.tab-btn').forEach(function(btn) {
-    btn.classList.toggle('activa', btn.dataset.vista === vista);
-  });
-  if (vista === 'resumen') actualizarResumen();
-  if (vista === 'diario') renderDiario();
-  if (vista === 'mayor') renderMayor();
-  if (vista === 'balance') renderBalance();
-  if (vista === 'resultados') renderResultados();
-  if (vista === 'borrado') actualizarContadoresBorrado();
-}
+            const rollBtn = document.getElementById('roll-btn');
+            rollBtn.disabled = true;
+            rollBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Moviendo...';
 
-document.querySelectorAll('.tab-btn').forEach(function(btn) {
-  btn.addEventListener('click', function() {
-    cambiarVista(this.dataset.vista);
-  });
-});
+            const dice = Math.floor(Math.random() * 6) + 1;
+            let steps = dice;
 
-document.getElementById('modoEstudiante').addEventListener('change', function() {
-  modoEstudianteActivo = this.checked;
-  mostrarMensajeGlobal(
-    modoEstudianteActivo ? '🎓 Modo estudiante activado.' : '💼 Modo trabajo activado.',
-    'info'
-  );
-  if (!document.getElementById('vista-diario').classList.contains('hidden')) renderDiario();
-  if (!document.getElementById('vista-mayor').classList.contains('hidden')) renderMayor();
-  if (!document.getElementById('vista-balance').classList.contains('hidden')) renderBalance();
-  if (!document.getElementById('vista-resultados').classList.contains('hidden')) renderResultados();
-});
+            const moveInterval = setInterval(() => {
+                if (steps > 0) {
+                    currentPlayer.position++;
+                    // Si llega al final del tablero (índice 23), vuelve al inicio (índice 0)
+                    if (currentPlayer.position >= boardData.length) {
+                        currentPlayer.position = 0; 
+                    }
+                    renderPlayers();
+                    steps--;
+                } else {
+                    clearInterval(moveInterval);
+                    checkCellAction();
+                }
+            }, 300);
+        }
 
-function mostrarMensajeGlobal(texto, tipo) {
-  var existente = document.getElementById('msg-global');
-  if (existente) existente.remove();
-  var div = document.createElement('div');
-  div.id = 'msg-global';
-  div.className = 'msg msg-' + (tipo || 'ok');
-  div.style.position = 'fixed';
-  div.style.top = '20px';
-  div.style.right = '20px';
-  div.style.zIndex = '9999';
-  div.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
-  div.style.maxWidth = '380px';
-  div.textContent = texto;
-  document.body.appendChild(div);
-  setTimeout(function() { div.remove(); }, 3500);
-}
+        function checkCellAction() {
+            const currentPlayer = players[currentPlayerIndex];
+            const currentCell = boardData[currentPlayer.position];
 
-var TIPOS_DOC_COMPRA = ['Factura','Factura Exenta','Boleta','Boleta Electrónica','Nota de Crédito','Nota de Débito','Otro'];
-var TIPOS_DOC_VENTA = ['Factura','Factura Exenta','Boleta','Boleta Electrónica','Nota de Crédito','Nota de Débito','Guía de Despacho','Otro'];
+            if (currentCell.type === "event") {
+                handleEvent(currentCell.text);
+                return;
+            }
 
-function esBoleta(tipoDoc) {
-  return tipoDoc === 'Boleta' || tipoDoc === 'Boleta Electrónica';
-}
+            if (cardsDB[currentCell.type]) {
+                showCard(currentCell.type);
+            } else {
+                endTurn();
+            }
+        }
 
-var CAMPOS_POR_TIPO = {
-  compra: [
-    { id: 'fecha', label: 'Fecha *', tipo: 'date' },
-    { id: 'tipoDoc', label: 'Tipo de documento *', tipo: 'select', opciones: TIPOS_DOC_COMPRA.map(function(t) { return { v: t, t: t }; }) },
-    { id: 'folio', label: 'Folio documento *', tipo: 'text' },
-    { id: 'rut', label: 'RUT proveedor *', tipo: 'text', placeholder: 'Ej: 12.345.678-9' },
-    { id: 'tercero', label: 'Proveedor *', tipo: 'text', placeholder: 'Nombre o razón social' },
-    { id: 'neto', label: 'Neto', tipo: 'number' },
-    { id: 'iva', label: 'IVA (19%)', tipo: 'number' },
-    { id: 'total', label: 'Total', tipo: 'number' },
-    { id: 'cuenta', label: 'Cuenta de destino *', tipo: 'select', opciones: [
-        { v: '1401', t: '1401 Mercaderías' },
-        { v: '1501', t: '1501 Mobiliario y equipos' },
-        { v: '1502', t: '1502 Vehículos' },
-        { v: '6104', t: '6104 Gastos de administración' }
-      ]
-    },
-    { id: 'pago', label: 'Forma de pago *', tipo: 'select', opciones: [
-        { v: '2101', t: 'Por pagar (Proveedores)' },
-        { v: '1101', t: 'Pagado en Caja' },
-        { v: '1102', t: 'Pagado por Banco' }
-      ]
-    }
-  ],
-  venta: [
-    { id: 'fecha', label: 'Fecha *', tipo: 'date' },
-    { id: 'tipoDoc', label: 'Tipo de documento *', tipo: 'select', opciones: TIPOS_DOC_VENTA.map(function(t) { return { v: t, t: t }; }) },
-    { id: 'folio', label: 'Folio documento *', tipo: 'text' },
-    { id: 'rut', label: 'RUT cliente *', tipo: 'text', placeholder: 'Ej: 12.345.678-9' },
-    { id: 'tercero', label: 'Cliente *', tipo: 'text', placeholder: 'Nombre o razón social' },
-    { id: 'neto', label: 'Neto', tipo: 'number' },
-    { id: 'iva', label: 'IVA (19%)', tipo: 'number' },
-    { id: 'total', label: 'Total', tipo: 'number' },
-    { id: 'cuenta', label: 'Cuenta de ingreso *', tipo: 'select', opciones: [
-        { v: '4101', t: '4101 Ventas de productos' },
-        { v: '4102', t: '4102 Prestación de servicios' },
-        { v: '4103', t: '4103 Otros ingresos' }
-      ]
-    },
-    { id: 'cobro', label: 'Forma de cobro *', tipo: 'select', opciones: [
-        { v: '1201', t: 'Por cobrar (Clientes)' },
-        { v: '1101', t: 'Cobrado en Caja' },
-        { v: '1102', t: 'Cobrado por Banco' }
-      ]
-    }
-  ],
-  gasto: [
-    { id: 'fecha', label: 'Fecha *', tipo: 'date' },
-    { id: 'folio', label: 'Documento (opcional)', tipo: 'text' },
-    { id: 'rut', label: 'RUT proveedor', tipo: 'text', placeholder: 'Opcional' },
-    { id: 'tercero', label: 'Descripción *', tipo: 'text', placeholder: 'Ej: Arriendo octubre' },
-    { id: 'neto', label: 'Monto neto', tipo: 'number' },
-    { id: 'iva', label: 'IVA (si aplica)', tipo: 'number' },
-    { id: 'total', label: 'Total pagado', tipo: 'number' },
-    { id: 'cuenta', label: 'Cuenta de gasto *', tipo: 'select', opciones: [
-        { v: '6101', t: '6101 Remuneraciones' },
-        { v: '6102', t: '6102 Arriendo' },
-        { v: '6103', t: '6103 Servicios básicos' },
-        { v: '6104', t: '6104 Gastos de administración' },
-        { v: '6105', t: '6105 Gastos de venta' },
-        { v: '6106', t: '6106 Gastos financieros' }
-      ]
-    },
-    { id: 'pago', label: 'Pagado con *', tipo: 'select', opciones: [
-        { v: '1101', t: 'Caja' },
-        { v: '1102', t: 'Banco' },
-        { v: '2101', t: 'Por pagar' }
-      ]
-    }
-  ],
-  movimiento: [
-    { id: 'fecha', label: 'Fecha *', tipo: 'date' },
-    { id: 'tercero', label: 'Concepto *', tipo: 'text', placeholder: 'Ej: Depósito inicial' },
-    { id: 'monto', label: 'Monto *', tipo: 'number' },
-    { id: 'signo', label: 'Tipo *', tipo: 'select', opciones: [
-        { v: 'ingreso', t: 'Ingreso (entra dinero)' },
-        { v: 'egreso', t: 'Egreso (sale dinero)' }
-      ]
-    },
-    { id: 'cuenta', label: 'Cuenta *', tipo: 'select', opciones: [
-        { v: '1101', t: '1101 Caja' },
-        { v: '1102', t: '1102 Banco' }
-      ]
-    },
-    { id: 'contrapartida', label: 'Contrapartida *', tipo: 'select', opciones: [
-        { v: '3101', t: '3101 Capital' },
-        { v: '4103', t: '4103 Otros ingresos' },
-        { v: '6104', t: '6104 Gastos de administración' },
-        { v: '6106', t: '6106 Gastos financieros' }
-      ]
-    }
-  ]
-};
+        function handleEvent(text) {
+            const overlay = document.getElementById('card-modal');
+            const questionText = document.getElementById('question-text');
+            const optionsContainer = document.getElementById('options-container');
+            const cardHeader = document.getElementById('card-header');
+            const continueBtn = document.getElementById('continue-btn');
+            
+            cardHeader.innerHTML = `<i class="fas fa-bolt card-icon" style="color: var(--gold)"></i> <span style="color: var(--gold)">EVENTO SORPRESA</span>`;
+            questionText.innerHTML = `¡Casilla Especial! <br><br><strong style="color: var(--gold); font-size: 1.5rem;">${text}</strong>`;
+            optionsContainer.innerHTML = '';
+            document.getElementById('feedback-text').innerHTML = '';
+            continueBtn.style.display = 'inline-block';
+            
+            continueBtn.onclick = () => {
+                overlay.style.display = 'none';
+                const currentPlayer = players[currentPlayerIndex];
+                if (text === "Avanza 2") {
+                    currentPlayer.position += 2;
+                    if (currentPlayer.position >= boardData.length) currentPlayer.position -= boardData.length;
+                } else if (text === "Retrocede 2") {
+                    currentPlayer.position = Math.max(0, currentPlayer.position - 2);
+                }
+                renderPlayers();
+                setTimeout(checkCellAction, 500);
+            };
 
-function renderFormulario() {
-  var campos = CAMPOS_POR_TIPO[tipoSeleccionado];
-  var cont = document.getElementById('form-campos');
-  var titulo = document.getElementById('form-titulo');
-  var nombres = { compra: 'Registrar Compra', venta: 'Registrar Venta', gasto: 'Registrar Gasto', movimiento: 'Registrar Movimiento de Caja/Banco' };
-  titulo.textContent = nombres[tipoSeleccionado] || 'Registrar Movimiento';
-  cont.innerHTML = campos.map(function(c) {
-    if (c.tipo === 'select') {
-      return '<div><label>' + c.label + '</label><select id="' + c.id + '">' +
-        c.opciones.map(function(o) { return '<option value="' + o.v + '">' + o.t + '</option>'; }).join('') +
-        '</select></div>';
-    }
-    return '<div><label>' + c.label + '</label>' +
-      '<input type="' + c.tipo + '" id="' + c.id + '" placeholder="' + (c.placeholder || '') + '"></div>';
-  }).join('');
-  var neto = document.getElementById('neto');
-  var iva = document.getElementById('iva');
-  var total = document.getElementById('total');
-  if (neto && iva && total) {
-    neto.addEventListener('input', function() {
-      var n = +neto.value || 0;
-      var i = (tipoSeleccionado === 'gasto') ? (+iva.value || 0) : Math.round(n * 0.19);
-      iva.value = i;
-      total.value = n + i;
-      actualizarPreview();
-    });
-    iva.addEventListener('input', function() {
-      var n = +neto.value || 0;
-      var i = +iva.value || 0;
-      total.value = n + i;
-      actualizarPreview();
-    });
-  }
-  cont.querySelectorAll('select').forEach(function(el) {
-    el.addEventListener('change', function() {
-      if (this.id === 'tipoDoc') aplicarModoBoleta();
-      actualizarPreview();
-    });
-  });
-  var monto = document.getElementById('monto');
-  if (monto) monto.addEventListener('input', actualizarPreview);
-  var fecha = document.getElementById('fecha');
-  if (fecha) fecha.value = new Date().toISOString().slice(0,10);
-  aplicarModoBoleta();
-  actualizarPreview();
-}
+            overlay.style.display = 'flex';
+        }
 
-function aplicarModoBoleta() {
-  if (tipoSeleccionado !== 'compra' && tipoSeleccionado !== 'venta') return;
-  var selTipoDoc = document.getElementById('tipoDoc');
-  if (!selTipoDoc) return;
-  var tipoDoc = selTipoDoc.value;
-  var rut = document.getElementById('rut');
-  var tercero = document.getElementById('tercero');
-  if (!rut || !tercero) return;
-  var rutWrap = rut.parentElement;
-  var terceroWrap = tercero.parentElement;
-  if (esBoleta(tipoDoc)) {
-    rutWrap.classList.add('hidden');
-    terceroWrap.classList.add('hidden');
-  } else {
-    rutWrap.classList.remove('hidden');
-    terceroWrap.classList.remove('hidden');
-  }
-}
-function actualizarPreview() {
-  var cont = document.getElementById('preview-asiento-contenido');
-  var preview = document.getElementById('preview-asiento');
-  if (!cont || !preview) return;
-  var neto = +(document.getElementById('neto') || {}).value || 0;
-  var iva = +(document.getElementById('iva') || {}).value || 0;
-  var total = +(document.getElementById('total') || {}).value || 0;
-  var monto = +(document.getElementById('monto') || {}).value || 0;
-  if (neto === 0 && iva === 0 && total === 0 && monto === 0) {
-    preview.classList.add('hidden');
-    return;
-  }
-  var filas = '';
-  if (tipoSeleccionado === 'compra') {
-    var cuentaC = document.getElementById('cuenta').value;
-    var pagoC = document.getElementById('pago').value;
-    filas =
-      '<tr><td>' + cuentaC + ' ' + PLAN_CUENTAS[cuentaC].nombre + '</td><td class="num">' + fmtCLP(neto) + '</td><td class="num"></td></tr>' +
-      (iva > 0 ? '<tr><td>1301 IVA Crédito Fiscal</td><td class="num">' + fmtCLP(iva) + '</td><td class="num"></td></tr>' : '') +
-      '<tr><td>' + pagoC + ' ' + PLAN_CUENTAS[pagoC].nombre + '</td><td class="num"></td><td class="num">' + fmtCLP(total) + '</td></tr>';
-  } else if (tipoSeleccionado === 'venta') {
-    var cuentaV = document.getElementById('cuenta').value;
-    var cobroV = document.getElementById('cobro').value;
-    filas =
-      '<tr><td>' + cobroV + ' ' + PLAN_CUENTAS[cobroV].nombre + '</td><td class="num">' + fmtCLP(total) + '</td><td class="num"></td></tr>' +
-      '<tr><td>' + cuentaV + ' ' + PLAN_CUENTAS[cuentaV].nombre + '</td><td class="num"></td><td class="num">' + fmtCLP(neto) + '</td></tr>' +
-      (iva > 0 ? '<tr><td>2201 IVA Débito Fiscal</td><td class="num"></td><td class="num">' + fmtCLP(iva) + '</td></tr>' : '');
-  } else if (tipoSeleccionado === 'gasto') {
-    var cuentaG = document.getElementById('cuenta').value;
-    var pagoG = document.getElementById('pago').value;
-    filas =
-      '<tr><td>' + cuentaG + ' ' + PLAN_CUENTAS[cuentaG].nombre + '</td><td class="num">' + fmtCLP(neto) + '</td><td class="num"></td></tr>' +
-      (iva > 0 ? '<tr><td>1301 IVA Crédito Fiscal</td><td class="num">' + fmtCLP(iva) + '</td><td class="num"></td></tr>' : '') +
-      '<tr><td>' + pagoG + ' ' + PLAN_CUENTAS[pagoG].nombre + '</td><td class="num"></td><td class="num">' + fmtCLP(total) + '</td></tr>';
-  } else if (tipoSeleccionado === 'movimiento') {
-    var signoM = document.getElementById('signo').value;
-    var cuentaM = document.getElementById('cuenta').value;
-    var contrapM = document.getElementById('contrapartida').value;
-    if (signoM === 'ingreso') {
-      filas =
-        '<tr><td>' + cuentaM + ' ' + PLAN_CUENTAS[cuentaM].nombre + '</td><td class="num">' + fmtCLP(monto) + '</td><td class="num"></td></tr>' +
-        '<tr><td>' + contrapM + ' ' + PLAN_CUENTAS[contrapM].nombre + '</td><td class="num"></td><td class="num">' + fmtCLP(monto) + '</td></tr>';
-    } else {
-      filas =
-        '<tr><td>' + contrapM + ' ' + PLAN_CUENTAS[contrapM].nombre + '</td><td class="num">' + fmtCLP(monto) + '</td><td class="num"></td></tr>' +
-        '<tr><td>' + cuentaM + ' ' + PLAN_CUENTAS[cuentaM].nombre + '</td><td class="num"></td><td class="num">' + fmtCLP(monto) + '</td></tr>';
-    }
-  }
-  cont.innerHTML = '<table style="background:white; border-radius:6px; overflow:hidden;"><thead><tr><th>Cuenta</th><th class="num" style="width:120px;">Debe</th><th class="num" style="width:120px;">Haber</th></tr></thead><tbody>' + filas + '</tbody></table>';
-  preview.classList.remove('hidden');
-}
+        function showCard(type) {
+            const typeInfo = {
+                blue: { color: "var(--blue)", name: "PREGUNTA (1 PT)", icon: "fa-question" },
+                orange: { color: "var(--orange)", name: "CASO PRÁCTICO (2 PTS)", icon: "fa-clipboard-list" },
+                green: { color: "var(--green)", name: "REGISTRO CONTABLE (2 PTS)", icon: "fa-book" },
+                purple: { color: "var(--purple)", name: "ESTADOS FINANCIEROS (2 PTS)", icon: "fa-chart-bar" },
+                red: { color: "var(--red)", name: "DESAFÍO (3 PTS)", icon: "fa-trophy" }
+            };
 
-function fmtCLP(n) {
-  return '$' + Math.round(n || 0).toLocaleString('es-CL');
-}
+            const header = document.getElementById('card-header');
+            header.innerHTML = `<i class="fas ${typeInfo[type].icon} card-icon" style="color: ${typeInfo[type].color}"></i> <span style="color: ${typeInfo[type].color}">${typeInfo[type].name}</span>`;
 
-function guardarMovimiento() {
-  var campos = CAMPOS_POR_TIPO[tipoSeleccionado];
-  var mov = { tipo: tipoSeleccionado, id: Date.now() + '_' + Math.random().toString(36).slice(2,7) };
-  for (var i = 0; i < campos.length; i++) {
-    var c = campos[i];
-    var el = document.getElementById(c.id);
-    if (!el) continue;
-    var valor = el.value.trim();
-    if (c.tipo === 'number') valor = +valor || 0;
-    mov[c.id] = valor;
-  }
-  if (!mov.fecha) return mostrarMsgForm('Debes ingresar la fecha.', 'err');
-  var tipoDoc = mov.tipoDoc || '';
-  var esB = esBoleta(tipoDoc);
-  if (tipoSeleccionado === 'compra' || tipoSeleccionado === 'venta') {
-    if (!tipoDoc) return mostrarMsgForm('Debes seleccionar el tipo de documento.', 'err');
-    if (!mov.folio) return mostrarMsgForm('Debes ingresar el folio.', 'err');
-    if (!esB) {
-      if (!mov.tercero) return mostrarMsgForm('Debes ingresar el nombre del tercero.', 'err');
-    }
-  } else {
-    if (tipoSeleccionado === 'movimiento' && !mov.tercero) return mostrarMsgForm('Debes ingresar el concepto.', 'err');
-  }
-  movimientos.push(mov);
-  guardarMovimientos();
-  renderMovimientos();
-  limpiarFormMovimiento();
-  mostrarMsgForm('✅ Movimiento guardado correctamente.', 'ok');
-}
+            let availableCards = cardsDB[type].filter((_, idx) => !usedQuestions.has(`${type}-${idx}`));
+            
+            if (availableCards.length === 0) {
+                cardsDB[type].forEach((_, idx) => usedQuestions.delete(`${type}-${idx}`));
+                availableCards = cardsDB[type];
+            }
 
-function limpiarFormMovimiento() {
-  var campos = CAMPOS_POR_TIPO[tipoSeleccionado];
-  campos.forEach(function(c) {
-    var el = document.getElementById(c.id);
-    if (!el) return;
-    if (c.tipo === 'select') el.selectedIndex = 0;
-    else if (c.id === 'fecha') el.value = new Date().toISOString().slice(0,10);
-    else el.value = '';
-  });
-  document.getElementById('msg-form-mov').innerHTML = '';
-  aplicarModoBoleta();
-  actualizarPreview();
-}
+            const randomIndex = Math.floor(Math.random() * availableCards.length);
+            currentQuestionData = availableCards[randomIndex];
+            
+            const originalIndex = cardsDB[type].indexOf(currentQuestionData);
+            usedQuestions.add(`${type}-${originalIndex}`);
 
-function mostrarMsgForm(texto, tipo) {
-  var el = document.getElementById('msg-form-mov');
-  if (!el) return;
-  el.innerHTML = '<div class="msg msg-' + (tipo === 'ok' ? 'ok' : 'err') + '">' + texto + '</div>';
-  setTimeout(function() { el.innerHTML = ''; }, 4000);
-}
+            document.getElementById('question-text').innerText = currentQuestionData.q;
+            
+            const optionsContainer = document.getElementById('options-container');
+            optionsContainer.innerHTML = '';
+            document.getElementById('feedback-text').innerHTML = '';
+            
+            const continueBtn = document.getElementById('continue-btn');
+            continueBtn.style.display = 'none';
+            continueBtn.onclick = closeModal;
 
-function renderMovimientos() {
-  var tbody = document.getElementById('cuerpo-movimientos');
-  var tfoot = document.getElementById('pie-movimientos');
-  if (!tbody) return;
-  tbody.innerHTML = '';
-  tfoot.innerHTML = '';
-  if (movimientos.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="11" style="text-align:center;color:#6b7280;padding:25px;">Aún no hay movimientos registrados.</td></tr>';
-    return;
-  }
-  var totNeto = 0, totIva = 0, totTotal = 0;
-  movimientos.slice().sort(function(a,b) { return (b.fecha || '').localeCompare(a.fecha || ''); }).forEach(function(m) {
-    var neto = +m.neto || +m.monto || 0;
-    var iva = +m.iva || 0;
-    var total = +m.total || +m.monto || 0;
-    totNeto += neto; totIva += iva; totTotal += total;
-    var tipos = { compra: '🛒 Compra', venta: '💰 Venta', gasto: '💸 Gasto', movimiento: '🏦 Movimiento' };
-    var pagos = { '2101': 'Por pagar', '1101': 'Caja', '1102': 'Banco', '1201': 'Por cobrar' };
-    var tr = document.createElement('tr');
-    tr.innerHTML =
-      '<td>' + (m.fecha || '') + '</td>' +
-      '<td>' + (tipos[m.tipo] || m.tipo) + '</td>' +
-      '<td>' + (m.tipoDoc || '—') + '</td>' +
-      '<td>' + (m.tercero || '—') + '</td>' +
-      '<td>' + (m.rut || '—') + '</td>' +
-      '<td>' + (m.folio || '—') + '</td>' +
-      '<td class="num">' + fmtCLP(neto) + '</td>' +
-      '<td class="num">' + fmtCLP(iva) + '</td>' +
-      '<td class="num"><strong>' + fmtCLP(total) + '</strong></td>' +
-      '<td>' + (pagos[m.pago] || pagos[m.cobro] || '—') + '</td>' +
-      '<td><button class="btn-danger btn-sm" onclick="eliminarMovimiento(\'' + m.id + '\')">🗑</button></td>';
-    tbody.appendChild(tr);
-  });
-  tfoot.innerHTML =
-    '<tr>' +
-      '<td colspan="6"><strong>TOTALES</strong></td>' +
-      '<td class="num">' + fmtCLP(totNeto) + '</td>' +
-      '<td class="num">' + fmtCLP(totIva) + '</td>' +
-      '<td class="num">' + fmtCLP(totTotal) + '</td>' +
-      '<td colspan="2"></td>' +
-    '</tr>';
-}
+            currentQuestionData.options.forEach((opt, index) => {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn';
+                btn.innerText = opt;
+                btn.onclick = () => checkAnswer(index, btn);
+                optionsContainer.appendChild(btn);
+            });
 
-function eliminarMovimiento(id) {
-  if (!confirm('¿Eliminar este movimiento?')) return;
-  movimientos = movimientos.filter(function(m) { return m.id !== id; });
-  guardarMovimientos();
-  renderMovimientos();
-}
+            document.getElementById('card-modal').style.display = 'flex';
+        }
 
-function actualizarResumen() {
-  var ventas = 0, cantV = 0, compras = 0, cantC = 0, gastos = 0, cantG = 0;
-  var ivaDeb = 0, ivaCred = 0, caja = 0, banco = 0;
-  movimientos.forEach(function(m) {
-    var total = +m.total || +m.monto || 0;
-    var iva = +m.iva || 0;
-    if (m.tipo === 'venta') {
-      ventas += total; cantV++; ivaDeb += iva;
-      if (m.cobro === '1101') caja += total; else if (m.cobro === '1102') banco += total;
-    } else if (m.tipo === 'compra') {
-      compras += total; cantC++; ivaCred += iva;
-      if (m.pago === '1101') caja -= total; else if (m.pago === '1102') banco -= total;
-    } else if (m.tipo === 'gasto') {
-      gastos += total; cantG++; ivaCred += iva;
-      if (m.pago === '1101') caja -= total; else if (m.pago === '1102') banco -= total;
-    } else if (m.tipo === 'movimiento') {
-      var monto = +m.monto || 0;
-      var signo = m.signo === 'egreso' ? -1 : 1;
-      if (m.cuenta === '1101') caja += monto * signo; else if (m.cuenta === '1102') banco += monto * signo;
-    }
-  });
-  var utilidad = ventas - compras - gastos;
-  var ivaPagar = ivaDeb - ivaCred;
-  var el = function(id) { return document.getElementById(id); };
-  if (el('m-ventas')) el('m-ventas').textContent = fmtCLP(ventas);
-  if (el('m-ventas-cant')) el('m-ventas-cant').textContent = cantV + ' documento' + (cantV === 1 ? '' : 's');
-  if (el('m-compras')) el('m-compras').textContent = fmtCLP(compras);
-  if (el('m-compras-cant')) el('m-compras-cant').textContent = cantC + ' documento' + (cantC === 1 ? '' : 's');
-  if (el('m-gastos')) el('m-gastos').textContent = fmtCLP(gastos);
-  if (el('m-gastos-cant')) el('m-gastos-cant').textContent = cantG + ' movimiento' + (cantG === 1 ? '' : 's');
-  if (el('m-utilidad')) el('m-utilidad').textContent = fmtCLP(utilidad);
-  if (el('m-iva')) el('m-iva').textContent = fmtCLP(ivaPagar);
-  if (el('m-caja')) el('m-caja').textContent = fmtCLP(caja);
-  if (el('m-banco')) el('m-banco').textContent = fmtCLP(banco);
-}
+        function checkAnswer(selectedIndex, btnElement) {
+            const allBtns = document.querySelectorAll('.option-btn');
+            allBtns.forEach(b => b.onclick = null);
 
-document.querySelectorAll('.tipo-card').forEach(function(card) {
-  card.addEventListener('click', function() {
-    document.querySelectorAll('.tipo-card').forEach(function(c) { c.classList.remove('activo'); });
-    this.classList.add('activo');
-    tipoSeleccionado = this.dataset.tipo;
-    renderFormulario();
-  });
-});
+            const feedback = document.getElementById('feedback-text');
+            const currentPlayer = players[currentPlayerIndex];
+            
+            if (selectedIndex === currentQuestionData.correct) {
+                btnElement.classList.add('correct');
+                currentPlayer.score += currentQuestionData.points;
+                playSound('correct');
+                feedback.innerHTML = `<span style="color: var(--green)"><i class="fas fa-check-circle"></i> ¡Correcto! +${currentQuestionData.points} Pts</span>`;
+                
+                // Verificar si el jugador ganó por puntos
+                if (currentPlayer.score >= targetScore) {
+                    document.getElementById('continue-btn').style.display = 'none';
+                    setTimeout(() => {
+                        document.getElementById('card-modal').style.display = 'none';
+                        showWinner(currentPlayer);
+                    }, 2000);
+                    return;
+                }
+                
+            } else {
+                btnElement.classList.add('incorrect');
+                allBtns[currentQuestionData.correct].classList.add('correct');
+                playSound('wrong');
+                
+                currentPlayer.position = previousPosition;
+                renderPlayers(); 
+                
+                feedback.innerHTML = `<span style="color: var(--red)"><i class="fas fa-times-circle"></i> Incorrecto. Retrocedes a tu casilla anterior.</span>`;
+            }
 
-function actualizarContadoresBorrado() {
-  var cntCompra = movimientos.filter(function(m) { return m.tipo === 'compra'; }).length;
-  var cntVenta = movimientos.filter(function(m) { return m.tipo === 'venta'; }).length;
-  var cntGasto = movimientos.filter(function(m) { return m.tipo === 'gasto'; }).length;
-  var cntMov = movimientos.filter(function(m) { return m.tipo === 'movimiento'; }).length;
-  var elC = document.getElementById('cnt-compra');
-  var elV = document.getElementById('cnt-venta');
-  var elG = document.getElementById('cnt-gasto');
-  var elM = document.getElementById('cnt-movimiento');
-  var elT = document.getElementById('cnt-total');
-  if (elC) elC.textContent = cntCompra;
-  if (elV) elV.textContent = cntVenta;
-  if (elG) elG.textContent = cntGasto;
-  if (elM) elM.textContent = cntMov;
-  if (elT) elT.textContent = movimientos.length;
-}
+            document.getElementById('continue-btn').style.display = 'inline-block';
+        }
 
-function descargarRespaldoAuto() {
-  try {
-    var data = JSON.stringify(movimientos, null, 2);
-    var blob = new Blob([data], { type: 'application/json' });
-    var url = URL.createObjectURL(blob);
-    var a = document.createElement('a');
-    a.href = url;
-    a.download = 'respaldo_antes_borrar_' + new Date().toISOString().slice(0,19).replace(/:/g,'-') + '.json';
-    a.click();
-    URL.revokeObjectURL(url);
-    return true;
-  } catch(e) {
-    return false;
-  }
-}
+        function closeModal() {
+            document.getElementById('card-modal').style.display = 'none';
+            endTurn();
+        }
 
-function borrarPorTipo(tipo) {
-  var etiquetas = { compra: 'Compras', venta: 'Ventas', gasto: 'Gastos', movimiento: 'Movimientos caja/banco' };
-  var cant = movimientos.filter(function(m) { return m.tipo === tipo; }).length;
-  if (cant === 0) {
-    return mostrarMensajeGlobal('No hay ' + etiquetas[tipo].toLowerCase() + ' para borrar.', 'info');
-  }
-  if (!confirm('⚠️ Se van a eliminar ' + cant + ' ' + etiquetas[tipo].toLowerCase() + '.\n\n¿Continuar?')) return;
-  if (!confirm('Última confirmación: ¿borrar ' + cant + ' ' + etiquetas[tipo].toLowerCase() + '?')) return;
-  movimientos = movimientos.filter(function(m) { return m.tipo !== tipo; });
-  guardarMovimientos();
-  renderMovimientos();
-  actualizarContadoresBorrado();
-  mostrarMensajeGlobal('✅ Se borraron ' + cant + ' ' + etiquetas[tipo].toLowerCase() + '.', 'ok');
-}
+        function endTurn() {
+            isMoving = false;
+            currentPlayerIndex = (currentPlayerIndex + 1) % players.length;
+            updateTurn();
+        }
 
-function borrarPorRango() {
-  var desde = document.getElementById('del-desde').value;
-  var hasta = document.getElementById('del-hasta').value;
-  if (!desde && !hasta) {
-    return mostrarMensajeGlobal('Debes ingresar al menos una fecha (desde o hasta).', 'err');
-  }
-  var aBorrar = movimientos.filter(function(m) {
-    if (desde && m.fecha < desde) return false;
-    if (hasta && m.fecha > hasta) return false;
-    return true;
-  });
-  if (aBorrar.length === 0) {
-    return mostrarMensajeGlobal('No hay movimientos en ese rango de fechas.', 'info');
-  }
-  var textoRango = (desde ? 'desde ' + desde : '') + (hasta ? ' hasta ' + hasta : '');
-  if (!confirm('⚠️ Se van a eliminar ' + aBorrar.length + ' movimientos ' + textoRango + '.\n\n¿Continuar?')) return;
-  if (!confirm('Última confirmación: ¿borrar estos ' + aBorrar.length + ' movimientos?')) return;
-  var idsABorrar = aBorrar.map(function(m) { return m.id; });
-  movimientos = movimientos.filter(function(m) { return idsABorrar.indexOf(m.id) === -1; });
-  guardarMovimientos();
-  renderMovimientos();
-  actualizarContadoresBorrado();
-  document.getElementById('del-desde').value = '';
-  document.getElementById('del-hasta').value = '';
-  mostrarMensajeGlobal('✅ Se borraron ' + aBorrar.length + ' movimientos.', 'ok');
-}
+        // --- GANADOR Y PODIO ---
+        function showWinner(winner) {
+            playSound('win');
+            document.getElementById('game-screen').style.display = 'none';
+            document.getElementById('winner-screen').style.display = 'flex';
+            
+            const sortedPlayers = [...players].sort((a, b) => b.score - a.score);
+            const podium = document.getElementById('podium');
+            podium.innerHTML = '';
 
-function borrarTodosMovimientos() {
-  if (movimientos.length === 0) {
-    return mostrarMensajeGlobal('No hay movimientos para borrar.', 'info');
-  }
-  if (!confirm('⚠️ Se van a eliminar TODOS los movimientos (' + movimientos.length + ').\n\nSe descargará un respaldo automático antes de borrar.\n\n¿Continuar?')) return;
-  if (!confirm('Última confirmación: ¿borrar TODOS los movimientos?')) return;
-  descargarRespaldoAuto();
-  movimientos = [];
-  guardarMovimientos();
-  renderMovimientos();
-  actualizarContadoresBorrado();
-  mostrarMensajeGlobal('✅ Se borraron TODOS los movimientos. Se descargó un respaldo.', 'ok');
-}
+            sortedPlayers.forEach((player, index) => {
+                const rank = index + 1;
+                const step = document.createElement('div');
+                step.className = `podium-step p${rank}`;
+                
+                if (sortedPlayers.length > 3) step.style.width = '70px';
+                
+                const isWinner = player.id === winner.id;
+                const crown = isWinner ? '<i class="fas fa-crown" style="color: var(--gold); font-size: 1rem; margin-bottom: 5px;"></i>' : '';
 
-function borrarTodoElSistema() {
-  if (movimientos.length === 0) {
-    if (!confirm('El sistema ya está vacío. ¿Quieres borrar también la configuración guardada en el navegador?')) return;
-  } else {
-    if (!confirm('⚠️ Se van a eliminar TODOS los movimientos (' + movimientos.length + ') y se reiniciará el sistema.\n\nSe descargará un respaldo automático antes de borrar.\n\n¿Continuar?')) return;
-    if (!confirm('Última confirmación: ¿borrar TODO el sistema?')) return;
-    descargarRespaldoAuto();
-  }
-  movimientos = [];
-  guardarMovimientos();
-  try {
-    localStorage.removeItem(STORAGE_MOV);
-  } catch(e) {}
-  renderMovimientos();
-  actualizarContadoresBorrado();
-  mostrarMensajeGlobal('✅ Sistema reiniciado. Se descargó un respaldo antes de borrar.', 'ok');
-}
-function generarAsientos() {
-  var lista = [];
-  var num = 1;
-  var ordenados = movimientos.slice().sort(function(a, b) { return (a.fecha || '').localeCompare(b.fecha || ''); });
-  ordenados.forEach(function(m) {
-    var asiento = { numero: num++, id: m.id, fecha: m.fecha || '', glosa: '', tipo: m.tipo, lineas: [], explicacion: '' };
-    var tipoDoc = m.tipoDoc || '';
-    var esB = esBoleta(tipoDoc);
-    var descTercero = m.tercero || (esB ? '(boleta)' : '');
-    if (m.tipo === 'compra') {
-      var neto = +m.neto || 0, iva = +m.iva || 0, total = +m.total || 0;
-      var cuenta = m.cuenta || '1401', pago = m.pago || '2101';
-      asiento.glosa = 'Compra ' + (tipoDoc ? tipoDoc.toLowerCase() + ' ' : '') + 'folio ' + (m.folio || 'S/N') + ' a ' + (descTercero || 'proveedor');
-      asiento.lineas.push({ codigo: cuenta, debe: neto, haber: 0 });
-      if (iva > 0) asiento.lineas.push({ codigo: '1301', debe: iva, haber: 0 });
-      asiento.lineas.push({ codigo: pago, debe: 0, haber: total });
-      asiento.explicacion = '<strong>¿Por qué este asiento?</strong><ul>' +
-        '<li><strong>Debe:</strong> Aumenta el Activo (' + PLAN_CUENTAS[cuenta].nombre + ') por el valor neto.</li>' +
-        (iva > 0 ? '<li><strong>Debe:</strong> Aumenta el IVA Crédito Fiscal.</li>' : '') +
-        '<li><strong>Haber:</strong> Aumenta el Pasivo (' + PLAN_CUENTAS[pago].nombre + ') o disminuye Caja/Banco.</li>' +
-        '</ul><strong>Regla:</strong> Debe = Haber.';
-    } else if (m.tipo === 'venta') {
-      var netoV = +m.neto || 0, ivaV = +m.iva || 0, totalV = +m.total || 0;
-      var cuentaV = m.cuenta || '4101', cobroV = m.cobro || '1201';
-      asiento.glosa = 'Venta ' + (tipoDoc ? tipoDoc.toLowerCase() + ' ' : '') + 'folio ' + (m.folio || 'S/N') + ' a ' + (descTercero || 'cliente');
-      asiento.lineas.push({ codigo: cobroV, debe: totalV, haber: 0 });
-      asiento.lineas.push({ codigo: cuentaV, debe: 0, haber: netoV });
-      if (ivaV > 0) asiento.lineas.push({ codigo: '2201', debe: 0, haber: ivaV });
-      asiento.explicacion = '<strong>¿Por qué este asiento?</strong><ul>' +
-        '<li><strong>Debe:</strong> Aumenta el Activo (' + PLAN_CUENTAS[cobroV].nombre + ') por el total.</li>' +
-        '<li><strong>Haber:</strong> Aumenta el Ingreso (' + PLAN_CUENTAS[cuentaV].nombre + ') por el neto.</li>' +
-        (ivaV > 0 ? '<li><strong>Haber:</strong> Aumenta el IVA Débito Fiscal.</li>' : '') +
-        '</ul>';
-    } else if (m.tipo === 'gasto') {
-      var netoG = +m.neto || 0, ivaG = +m.iva || 0, totalG = +m.total || 0;
-      var cuentaG = m.cuenta || '6104', pagoG = m.pago || '1101';
-      asiento.glosa = 'Gasto: ' + (m.tercero || 'sin descripción');
-      asiento.lineas.push({ codigo: cuentaG, debe: netoG, haber: 0 });
-      if (ivaG > 0) asiento.lineas.push({ codigo: '1301', debe: ivaG, haber: 0 });
-      asiento.lineas.push({ codigo: pagoG, debe: 0, haber: totalG });
-      asiento.explicacion = '<strong>¿Por qué este asiento?</strong><ul>' +
-        '<li><strong>Debe:</strong> Aumenta el Gasto (' + PLAN_CUENTAS[cuentaG].nombre + ').</li>' +
-        (ivaG > 0 ? '<li><strong>Debe:</strong> Aumenta el IVA Crédito Fiscal.</li>' : '') +
-        '<li><strong>Haber:</strong> Disminuye Caja/Banco o aumenta Proveedores.</li></ul>';
-    } else if (m.tipo === 'movimiento') {
-      var monto = +m.monto || 0;
-      var cuentaM = m.cuenta || '1101', contrapM = m.contrapartida || '3101';
-      asiento.glosa = (m.signo === 'ingreso' ? 'Ingreso: ' : 'Egreso: ') + (m.tercero || 'movimiento');
-      if (m.signo === 'ingreso') {
-        asiento.lineas.push({ codigo: cuentaM, debe: monto, haber: 0 });
-        asiento.lineas.push({ codigo: contrapM, debe: 0, haber: monto });
-      } else {
-        asiento.lineas.push({ codigo: contrapM, debe: monto, haber: 0 });
-        asiento.lineas.push({ codigo: cuentaM, debe: 0, haber: monto });
-      }
-      asiento.explicacion = '<strong>¿Por qué este asiento?</strong><ul>' +
-        (m.signo === 'ingreso'
-          ? '<li><strong>Debe:</strong> Aumenta ' + PLAN_CUENTAS[cuentaM].nombre + '.</li><li><strong>Haber:</strong> Aumenta ' + PLAN_CUENTAS[contrapM].nombre + '.</li>'
-          : '<li><strong>Debe:</strong> Aumenta ' + PLAN_CUENTAS[contrapM].nombre + '.</li><li><strong>Haber:</strong> Disminuye ' + PLAN_CUENTAS[cuentaM].nombre + '.</li>') +
-        '</ul>';
-    }
-    if (asiento.lineas.length > 0) lista.push(asiento);
-  });
-  return lista;
-}
+                step.innerHTML = `
+                    ${crown}
+                    <div class="podium-name" style="color: ${player.color}">${rank}° ${player.name}</div>
+                    <div class="podium-score">${player.score} Pts</div>
+                    <div class="podium-block">${rank}</div>
+                `;
+                podium.appendChild(step);
+            });
 
-function renderDiario() {
-  var cont = document.getElementById('diario-contenido');
-  if (!cont) return;
-  var listaAsientos = generarAsientos();
-  if (listaAsientos.length === 0) {
-    cont.innerHTML = '<div class="placeholder"><div class="grande">📒</div><p>El Libro Diario se llenará automáticamente cuando registres movimientos.</p></div>';
-    return;
-  }
-  var html = '';
-  listaAsientos.forEach(function(a) {
-    var totalDebe = a.lineas.reduce(function(s, l) { return s + (l.debe || 0); }, 0);
-    var totalHaber = a.lineas.reduce(function(s, l) { return s + (l.haber || 0); }, 0);
-    html += '<div style="background:#f9fafb; border:1px solid #e5e7eb; border-radius:8px; padding:16px; margin-bottom:14px;">';
-    html += '<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; flex-wrap:wrap; gap:8px;">' +
-              '<div><strong style="color:#1e3a8a; font-size:0.95rem;">Asiento N° ' + a.numero + '</strong>' +
-              '<span style="color:#6b7280; margin-left:12px; font-size:0.85rem;">' + (a.fecha || 'Sin fecha') + '</span></div>' +
-              '<div style="color:#6b7280; font-size:0.85rem;">' + a.glosa + '</div></div>';
-    html += '<table style="background:white; border-radius:6px; overflow:hidden;"><thead><tr>' +
-              '<th style="width:80px;">Código</th><th>Cuenta</th><th class="num" style="width:120px;">Debe</th><th class="num" style="width:120px;">Haber</th>' +
-            '</tr></thead><tbody>';
-    a.lineas.forEach(function(l) {
-      var cta = PLAN_CUENTAS[l.codigo] || { nombre: '?' };
-      html += '<tr><td>' + l.codigo + '</td><td>' + cta.nombre + '</td>' +
-                '<td class="num">' + (l.debe > 0 ? fmtCLP(l.debe) : '') + '</td>' +
-                '<td class="num">' + (l.haber > 0 ? fmtCLP(l.haber) : '') + '</td></tr>';
-    });
-    html += '<tr style="background:#f3f4f6; font-weight:700;">' +
-              '<td colspan="2" style="text-align:right;">TOTALES</td>' +
-              '<td class="num">' + fmtCLP(totalDebe) + '</td>' +
-              '<td class="num">' + fmtCLP(totalHaber) + '</td></tr></tbody></table>';
-    if (modoEstudianteActivo && a.explicacion) {
-      html += '<div class="explicacion">' + a.explicacion + '</div>';
-    }
-    html += '</div>';
-  });
-  cont.innerHTML = html;
-}
+            if (sortedPlayers.length > 3) {
+                podium.style.flexWrap = 'wrap';
+                podium.style.height = 'auto';
+            }
+        }
 
-function exportarDiarioCSV() {
-  var listaAsientos = generarAsientos();
-  if (listaAsientos.length === 0) return alert('No hay asientos para exportar.');
-  var csv = 'Asiento;Fecha;Glosa;Codigo;Cuenta;Debe;Haber\n';
-  listaAsientos.forEach(function(a) {
-    a.lineas.forEach(function(l, i) {
-      var cta = PLAN_CUENTAS[l.codigo] || { nombre: '?' };
-      csv += [
-        i === 0 ? a.numero : '',
-        i === 0 ? a.fecha : '',
-        i === 0 ? a.glosa : '',
-        l.codigo, cta.nombre, l.debe || 0, l.haber || 0
-      ].map(function(v) { return '"' + String(v).replace(/"/g, '""') + '"'; }).join(';') + '\n';
-    });
-  });
-  var blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
-  var url = URL.createObjectURL(blob);
-  var a = document.createElement('a');
-  a.href = url;
-  a.download = 'libro_diario_' + new Date().toISOString().slice(0,10) + '.csv';
-  a.click();
-  URL.revokeObjectURL(url);
-}
-
-function calcularMayor() {
-  var asientos = generarAsientos();
-  var cuentas = {};
-  asientos.forEach(function(a) {
-    a.lineas.forEach(function(l) {
-      if (!cuentas[l.codigo]) {
-        cuentas[l.codigo] = { debe: 0, haber: 0, movimientos: [] };
-      }
-      cuentas[l.codigo].debe += (l.debe || 0);
-      cuentas[l.codigo].haber += (l.haber || 0);
-      cuentas[l.codigo].movimientos.push({
-        numero: a.numero,
-        fecha: a.fecha,
-        glosa: a.glosa,
-        debe: l.debe || 0,
-        haber: l.haber || 0
-      });
-    });
-  });
-  return cuentas;
-}
-
-function renderMayor() {
-  var cont = document.getElementById('mayor-contenido');
-  if (!cont) return;
-  var cuentas = calcularMayor();
-  var codigos = Object.keys(cuentas).sort();
-  if (codigos.length === 0) {
-    cont.innerHTML = '<div class="placeholder"><div class="grande">📗</div><p>El Libro Mayor se llenará automáticamente cuando registres movimientos.</p></div>';
-    return;
-  }
-  var html = '';
-  codigos.forEach(function(codigo) {
-    var cta = PLAN_CUENTAS[codigo] || { nombre: '?', tipo: '?' };
-    var info = cuentas[codigo];
-    var saldo = info.debe - info.haber;
-    var tipoSaldo = '';
-    if (['activo', 'costo', 'gasto'].indexOf(cta.tipo) >= 0) {
-      tipoSaldo = saldo >= 0 ? 'Deudor' : 'Acreedor';
-    } else if (['pasivo', 'patrimonio', 'ingreso'].indexOf(cta.tipo) >= 0) {
-      tipoSaldo = saldo <= 0 ? 'Acreedor' : 'Deudor';
-    }
-    html += '<div style="background:#f9fafb; border:1px solid #e5e7eb; border-radius:8px; padding:16px; margin-bottom:14px;">';
-    html += '<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; flex-wrap:wrap; gap:8px;">';
-    html += '<div><strong style="color:#1e3a8a; font-size:0.95rem;">' + codigo + ' — ' + cta.nombre + '</strong>' +
-            '<span style="color:#6b7280; margin-left:12px; font-size:0.82rem;">(' + cta.tipo + ')</span></div>' +
-            '<div style="color:#1e3a8a; font-weight:700; font-size:0.9rem;">Saldo ' + tipoSaldo + ': ' + fmtCLP(Math.abs(saldo)) + '</div></div>';
-    html += '<table style="background:white; border-radius:6px; overflow:hidden;">' +
-              '<thead><tr><th style="width:80px;">Asiento</th><th style="width:100px;">Fecha</th><th>Glosa</th>' +
-              '<th class="num" style="width:110px;">Debe</th><th class="num" style="width:110px;">Haber</th></tr></thead><tbody>';
-    info.movimientos.forEach(function(mv) {
-      html += '<tr><td>N° ' + mv.numero + '</td><td>' + mv.fecha + '</td><td>' + mv.glosa + '</td>' +
-                '<td class="num">' + (mv.debe > 0 ? fmtCLP(mv.debe) : '') + '</td>' +
-                '<td class="num">' + (mv.haber > 0 ? fmtCLP(mv.haber) : '') + '</td></tr>';
-    });
-    html += '<tr style="background:#f3f4f6; font-weight:700;">' +
-              '<td colspan="3" style="text-align:right;">SUMAS</td>' +
-              '<td class="num">' + fmtCLP(info.debe) + '</td>' +
-              '<td class="num">' + fmtCLP(info.haber) + '</td></tr></tbody></table>';
-    if (modoEstudianteActivo) {
-      html += '<div class="explicacion"><strong>📘 ¿Cómo leer esta cuenta?</strong><ul>' +
-                '<li><strong>Debe acumulado:</strong> ' + fmtCLP(info.debe) + '</li>' +
-                '<li><strong>Haber acumulado:</strong> ' + fmtCLP(info.haber) + '</li>' +
-                '<li><strong>Saldo ' + tipoSaldo + ':</strong> ' + fmtCLP(Math.abs(saldo)) + '</li>' +
-                '<li><strong>Por qué:</strong> Las cuentas de ' + cta.tipo + ' tienen su saldo ' +
-                  (['activo', 'costo', 'gasto'].indexOf(cta.tipo) >= 0
-                    ? 'normalmente en el Debe (Deudor).'
-                    : 'normalmente en el Haber (Acreedor).') +
-                '</li></ul></div>';
-    }
-    html += '</div>';
-  });
-  cont.innerHTML = html;
-}
-
-function exportarMayorCSV() {
-  var cuentas = calcularMayor();
-  var codigos = Object.keys(cuentas).sort();
-  if (codigos.length === 0) return alert('No hay cuentas para exportar.');
-  var csv = 'Codigo;Cuenta;Tipo;Debe;Haber;Saldo\n';
-  codigos.forEach(function(codigo) {
-    var cta = PLAN_CUENTAS[codigo] || { nombre: '?' };
-    var info = cuentas[codigo];
-    var saldo = info.debe - info.haber;
-    csv += [codigo, cta.nombre, cta.tipo || '', info.debe, info.haber, saldo]
-      .map(function(v) { return '"' + String(v).replace(/"/g, '""') + '"'; }).join(';') + '\n';
-  });
-  var blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
-  var url = URL.createObjectURL(blob);
-  var a = document.createElement('a');
-  a.href = url;
-  a.download = 'libro_mayor_' + new Date().toISOString().slice(0,10) + '.csv';
-  a.click();
-  URL.revokeObjectURL(url);
-}
-
-function calcularBalance() {
-  var cuentas = calcularMayor();
-  var codigos = Object.keys(cuentas).sort();
-  var filas = [];
-  var totSumasDebe = 0, totSumasHaber = 0, totSaldoDeudor = 0, totSaldoAcreedor = 0;
-  var totActivo = 0, totPasivo = 0, totPerdida = 0, totGanancia = 0;
-  codigos.forEach(function(codigo) {
-    var cta = PLAN_CUENTAS[codigo] || { nombre: '?', tipo: '?' };
-    var info = cuentas[codigo];
-    var saldo = info.debe - info.haber;
-    var saldoDeudor = saldo > 0 ? saldo : 0;
-    var saldoAcreedor = saldo < 0 ? Math.abs(saldo) : 0;
-    var activo = 0, pasivo = 0, perdida = 0, ganancia = 0;
-    if (cta.tipo === 'activo') activo = saldoDeudor - saldoAcreedor;
-    else if (cta.tipo === 'pasivo') pasivo = saldoAcreedor - saldoDeudor;
-    else if (cta.tipo === 'patrimonio') pasivo = saldoAcreedor - saldoDeudor;
-    else if (cta.tipo === 'ingreso') ganancia = saldoAcreedor - saldoDeudor;
-    else if (cta.tipo === 'costo' || cta.tipo === 'gasto') perdida = saldoDeudor - saldoAcreedor;
-    filas.push({
-      codigo: codigo, nombre: cta.nombre, tipo: cta.tipo,
-      sumasDebe: info.debe, sumasHaber: info.haber,
-      saldoDeudor: saldoDeudor, saldoAcreedor: saldoAcreedor,
-      activo: activo > 0 ? activo : 0,
-      pasivo: pasivo > 0 ? pasivo : 0,
-      perdida: perdida > 0 ? perdida : 0,
-      ganancia: ganancia > 0 ? ganancia : 0
-    });
-    totSumasDebe += info.debe;
-    totSumasHaber += info.haber;
-    totSaldoDeudor += saldoDeudor;
-    totSaldoAcreedor += saldoAcreedor;
-    totActivo += activo > 0 ? activo : 0;
-    totPasivo += pasivo > 0 ? pasivo : 0;
-    totPerdida += perdida > 0 ? perdida : 0;
-    totGanancia += ganancia > 0 ? ganancia : 0;
-  });
-  return {
-    filas: filas,
-    totSumasDebe: totSumasDebe, totSumasHaber: totSumasHaber,
-    totSaldoDeudor: totSaldoDeudor, totSaldoAcreedor: totSaldoAcreedor,
-    totActivo: totActivo, totPasivo: totPasivo,
-    totPerdida: totPerdida, totGanancia: totGanancia
-  };
-}
-
-function renderBalance() {
-  var cont = document.getElementById('balance-contenido');
-  if (!cont) return;
-  var data = calcularBalance();
-  if (data.filas.length === 0) {
-    cont.innerHTML = '<div class="placeholder"><div class="grande">⚖️</div><p>El Balance se calculará automáticamente cuando registres movimientos.</p></div>';
-    return;
-  }
-  var html = '';
-  html += '<div class="table-wrap"><table>';
-  html += '<thead><tr>' +
-            '<th>Código</th><th>Cuenta</th>' +
-            '<th class="num">Sumas Debe</th>' +
-            '<th class="num">Sumas Haber</th>' +
-            '<th class="num">Saldo Deudor</th>' +
-            '<th class="num">Saldo Acreedor</th>' +
-            '<th class="num">Activo</th>' +
-            '<th class="num">Pasivo</th>' +
-            '<th class="num">Pérdida</th>' +
-            '<th class="num">Ganancia</th>' +
-          '</tr></thead><tbody>';
-  data.filas.forEach(function(f) {
-    html += '<tr>' +
-              '<td>' + f.codigo + '</td>' +
-              '<td>' + f.nombre + '</td>' +
-              '<td class="num">' + (f.sumasDebe > 0 ? fmtCLP(f.sumasDebe) : '') + '</td>' +
-              '<td class="num">' + (f.sumasHaber > 0 ? fmtCLP(f.sumasHaber) : '') + '</td>' +
-              '<td class="num">' + (f.saldoDeudor > 0 ? fmtCLP(f.saldoDeudor) : '') + '</td>' +
-              '<td class="num">' + (f.saldoAcreedor > 0 ? fmtCLP(f.saldoAcreedor) : '') + '</td>' +
-              '<td class="num">' + (f.activo > 0 ? fmtCLP(f.activo) : '') + '</td>' +
-              '<td class="num">' + (f.pasivo > 0 ? fmtCLP(f.pasivo) : '') + '</td>' +
-              '<td class="num">' + (f.perdida > 0 ? fmtCLP(f.perdida) : '') + '</td>' +
-              '<td class="num">' + (f.ganancia > 0 ? fmtCLP(f.ganancia) : '') + '</td>' +
-            '</tr>';
-  });
-  html += '<tr style="background:#1e3a8a; color:white; font-weight:700;">' +
-            '<td colspan="2" style="text-align:right;">TOTALES</td>' +
-            '<td class="num">' + fmtCLP(data.totSumasDebe) + '</td>' +
-            '<td class="num">' + fmtCLP(data.totSumasHaber) + '</td>' +
-            '<td class="num">' + fmtCLP(data.totSaldoDeudor) + '</td>' +
-            '<td class="num">' + fmtCLP(data.totSaldoAcreedor) + '</td>' +
-            '<td class="num">' + fmtCLP(data.totActivo) + '</td>' +
-            '<td class="num">' + fmtCLP(data.totPasivo) + '</td>' +
-            '<td class="num">' + fmtCLP(data.totPerdida) + '</td>' +
-            '<td class="num">' + fmtCLP(data.totGanancia) + '</td>' +
-          '</tr></tbody></table></div>';
-
-  var cuadraDebeHaber = Math.abs(data.totSumasDebe - data.totSumasHaber) < 1;
-  var utilidad = data.totGanancia - data.totPerdida;
-  html += '<div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(280px, 1fr)); gap:14px; margin-top:20px;">';
-  html += '<div style="background:' + (cuadraDebeHaber ? '#d1fae5' : '#fee2e2') + '; border-left:4px solid ' + (cuadraDebeHaber ? '#059669' : '#dc2626') + '; padding:14px; border-radius:8px;">' +
-            '<strong style="font-size:0.95rem;">' + (cuadraDebeHaber ? '✅' : '❌') + ' Cuadre Debe = Haber</strong>' +
-            '<div style="font-size:0.85rem; margin-top:6px; color:#374151;">' +
-              'Sumas Debe: ' + fmtCLP(data.totSumasDebe) + '<br>' +
-              'Sumas Haber: ' + fmtCLP(data.totSumasHaber) +
-            '</div></div>';
-  html += '<div style="background:#dbeafe; border-left:4px solid #2563eb; padding:14px; border-radius:8px;">' +
-            '<strong style="font-size:0.95rem;">📊 Resultado del ejercicio</strong>' +
-            '<div style="font-size:0.85rem; margin-top:6px; color:#374151;">' +
-              (utilidad >= 0
-                ? 'Utilidad: <strong style="color:#059669;">' + fmtCLP(utilidad) + '</strong>'
-                : 'Pérdida: <strong style="color:#dc2626;">' + fmtCLP(Math.abs(utilidad)) + '</strong>') +
-            '</div></div>';
-  html += '<div style="background:#fef3c7; border-left:4px solid #d97706; padding:14px; border-radius:8px;">' +
-            '<strong style="font-size:0.95rem;">⚖️ Activo vs Pasivo + Patrimonio</strong>' +
-            '<div style="font-size:0.85rem; margin-top:6px; color:#374151;">' +
-              'Activo: ' + fmtCLP(data.totActivo) + '<br>' +
-              'Pasivo + Resultado: ' + fmtCLP(data.totPasivo + utilidad) +
-            '</div></div>';
-  html += '</div>';
-  if (modoEstudianteActivo) {
-    html += '<div class="explicacion">' +
-              '<strong>📘 ¿Cómo leer el Balance de 8 columnas?</strong>' +
-              '<ul>' +
-                '<li><strong>Sumas Debe / Haber:</strong> el total de todos los movimientos de cada cuenta. Deben cuadrar.</li>' +
-                '<li><strong>Saldo Deudor:</strong> cuentas donde el Debe supera al Haber.</li>' +
-                '<li><strong>Saldo Acreedor:</strong> cuentas donde el Haber supera al Debe.</li>' +
-                '<li><strong>Activo / Pasivo:</strong> lo que el negocio tiene y lo que debe.</li>' +
-                '<li><strong>Pérdida / Ganancia:</strong> si los gastos superan los ingresos hay Pérdida, si los ingresos superan los gastos hay Ganancia.</li>' +
-                '<li><strong>Ecuación:</strong> Activo = Pasivo + Patrimonio (considerando el resultado).</li>' +
-              '</ul>' +
-            '</div>';
-  }
-  cont.innerHTML = html;
-}
-
-function exportarBalanceCSV() {
-  var data = calcularBalance();
-  if (data.filas.length === 0) return alert('No hay datos para exportar.');
-  var csv = 'Codigo;Cuenta;Tipo;SumasDebe;SumasHaber;SaldoDeudor;SaldoAcreedor;Activo;Pasivo;Perdida;Ganancia\n';
-  data.filas.forEach(function(f) {
-    csv += [
-      f.codigo, f.nombre, f.tipo,
-      f.sumasDebe, f.sumasHaber,
-      f.saldoDeudor, f.saldoAcreedor,
-      f.activo, f.pasivo, f.perdida, f.ganancia
-    ].map(function(v) { return '"' + String(v).replace(/"/g, '""') + '"'; }).join(';') + '\n';
-  });
-  csv += ['TOTALES', '', '',
-    data.totSumasDebe, data.totSumasHaber,
-    data.totSaldoDeudor, data.totSaldoAcreedor,
-    data.totActivo, data.totPasivo, data.totPerdida, data.totGanancia
-  ].map(function(v) { return '"' + String(v).replace(/"/g, '""') + '"'; }).join(';') + '\n';
-  var blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
-  var url = URL.createObjectURL(blob);
-  var a = document.createElement('a');
-  a.href = url;
-  a.download = 'balance_8_columnas_' + new Date().toISOString().slice(0,10) + '.csv';
-  a.click();
-  URL.revokeObjectURL(url);
-}
-
-function limpiarFiltroResultados() {
-  document.getElementById('res-desde').value = '';
-  document.getElementById('res-hasta').value = '';
-  renderResultados();
-}
-
-function calcularResultados() {
-  var desde = document.getElementById('res-desde').value;
-  var hasta = document.getElementById('res-hasta').value;
-  var ingresos = {};
-  var costos = {};
-  var gastos = {};
-  var movFiltrados = movimientos.filter(function(m) {
-    if (desde && m.fecha < desde) return false;
-    if (hasta && m.fecha > hasta) return false;
-    return true;
-  });
-  movFiltrados.forEach(function(m) {
-    var neto = +m.neto || 0;
-    var signo = m.tipoDoc === 'Nota de Crédito' ? -1 : 1;
-    if (m.tipo === 'venta') {
-      var cuenta = m.cuenta || '4101';
-      if (!ingresos[cuenta]) ingresos[cuenta] = 0;
-      ingresos[cuenta] += neto * signo;
-    } else if (m.tipo === 'compra') {
-      var cuentaC = m.cuenta || '1401';
-      if (cuentaC === '1401') {
-        if (!costos['5101']) costos['5101'] = 0;
-        costos['5101'] += neto * signo;
-      } else if (cuentaC === '6104' || cuentaC === '6105' || cuentaC === '6106' ||
-                 cuentaC === '6101' || cuentaC === '6102' || cuentaC === '6103') {
-        if (!gastos[cuentaC]) gastos[cuentaC] = 0;
-        gastos[cuentaC] += neto * signo;
-      } else {
-        if (!costos['5101']) costos['5101'] = 0;
-        costos['5101'] += neto * signo;
-      }
-    } else if (m.tipo === 'gasto') {
-      var cuentaG = m.cuenta || '6104';
-      if (!gastos[cuentaG]) gastos[cuentaG] = 0;
-      gastos[cuentaG] += neto * signo;
-    }
-  });
-  var totIngresos = 0;
-  Object.keys(ingresos).forEach(function(k) { totIngresos += ingresos[k]; });
-  var totCostos = 0;
-  Object.keys(costos).forEach(function(k) { totCostos += costos[k]; });
-  var totGastos = 0;
-  Object.keys(gastos).forEach(function(k) { totGastos += gastos[k]; });
-  var margenBruto = totIngresos - totCostos;
-  var utilidad = margenBruto - totGastos;
-  return {
-    ingresos: ingresos, costos: costos, gastos: gastos,
-    totIngresos: totIngresos, totCostos: totCostos, totGastos: totGastos,
-    margenBruto: margenBruto, utilidad: utilidad
-  };
-}
-
-function renderResultados() {
-  var cont = document.getElementById('resultados-contenido');
-  if (!cont) return;
-  var data = calcularResultados();
-  if (data.totIngresos === 0 && data.totCostos === 0 && data.totGastos === 0) {
-    cont.innerHTML = '<div class="placeholder"><div class="grande">📈</div><p>El Estado de Resultados se calculará automáticamente cuando registres ventas, compras o gastos.</p></div>';
-    return;
-  }
-  var colorUtilidad = data.utilidad >= 0 ? '#059669' : '#dc2626';
-  var etiquetaUtilidad = data.utilidad >= 0 ? 'UTILIDAD DEL EJERCICIO' : 'PÉRDIDA DEL EJERCICIO';
-  var html = '<div style="max-width:900px; margin:0 auto;">';
-  html += '<table style="background:white; border-radius:8px; overflow:hidden;">';
-  html += '<thead><tr style="background:#1e3a8a; color:white;">' +
-            '<th style="padding:12px;">Cuenta</th>' +
-            '<th style="padding:12px;" class="num">Monto</th>' +
-          '</tr></thead><tbody>';
-  html += '<tr style="background:##eff6ff;"><td colspan="2" style="padding:12px; font-weight:700; color:#1e3a8a;">INGRESOS OPERACIONALES</td></tr>';
-  Object.keys(data.ingresos).sort().forEach(function(codigo) {
-    var cta = PLAN_CUENTAS[codigo] || { nombre: '?' };
-    html += '<tr><td style="padding:10px 12px 10px 30px;">' + codigo + ' — ' + cta.nombre + '</td><td class="num" style="padding:10px 12px;">' + fmtCLP(data.ingresos[codigo]) + '</td></tr>';
-  });
-  html += '<tr style="background:#f3f4f6; font-weight:700;"><td style="padding:10px 12px; text-align:right;">TOTAL INGRESOS</td><td class="num" style="padding:10px 12px;">' + fmtCLP(data.totIngresos) + '</td></tr>';
-  html += '<tr style="background:#fef3c7;"><td colspan="2" style="padding:12px; font-weight:700; color:#92400e;">COSTOS</td></tr>';
-  if (Object.keys(data.costos).length === 0) {
-    html += '<tr><td style="padding:10px 12px 10px 30px; color:#9ca3af;">(Sin costos registrados)</td><td class="num" style="padding:10px 12px;">$0</td></tr>';
-  } else {
-    Object.keys(data.costos).sort().forEach(function(codigo) {
-      var cta = PLAN_CUENTAS[codigo] || { nombre: '?' };
-      html += '<tr><td style="padding:10px 12px 10px 30px;">' + codigo + ' — ' + cta.nombre + '</td><td class="num" style="padding:10px 12px;">' + fmtCLP(data.costos[codigo]) + '</td></tr>';
-    });
-  }
-  html += '<tr style="background:#f3f4f6; font-weight:700;"><td style="padding:10px 12px; text-align:right;">TOTAL COSTOS</td><td class="num" style="padding:10px 12px;">' + fmtCLP(data.totCostos) + '</td></tr>';
-  html += '<tr style="background:#dbeafe; font-weight:700;"><td style="padding:10px 12px; text-align:right;">MARGEN BRUTO</td><td class="num" style="padding:10px 12px; color:#1e40af;">' + fmtCLP(data.margenBruto) + '</td></tr>';
-  html += '<tr style="background:#fee2e2;"><td colspan="2" style="padding:12px; font-weight:700; color:#991b1b;">GASTOS OPERACIONALES</td></tr>';
-  if (Object.keys(data.gastos).length === 0) {
-    html += '<tr><td style="padding:10px 12px 10px 30px; color:#9ca3af;">(Sin gastos registrados)</td><td class="num" style="padding:10px 12px;">$0</td></tr>';
-  } else {
-    Object.keys(data.gastos).sort().forEach(function(codigo) {
-      var cta = PLAN_CUENTAS[codigo] || { nombre: '?' };
-      html += '<tr><td style="padding:10px 12px 10px 30px;">' + codigo + ' — ' + cta.nombre + '</td><td class="num" style="padding:10px 12px;">' + fmtCLP(data.gastos[codigo]) + '</td></tr>';
-    });
-  }
-  html += '<tr style="background:#f3f4f6; font-weight:700;"><td style="padding:10px 12px; text-align:right;">TOTAL GASTOS</td><td class="num" style="padding:10px 12px;">' + fmtCLP(data.totGastos) + '</td></tr>';
-  html += '<tr style="background:' + (data.utilidad >= 0 ? '#d1fae5' : '#fee2e2') + '; border-top:3px solid ' + colorUtilidad + ';">' +
-            '<td style="padding:16px 12px; text-align:right; font-size:1.05rem; font-weight:700; color:' + colorUtilidad + ';">' + etiquetaUtilidad + '</td>' +
-            '<td class="num" style="padding:16px 12px; font-size:1.15rem; font-weight:700; color:' + colorUtilidad + ';">' + fmtCLP(data.utilidad) + '</td>' +
-          '</tr>';
-  html += '</tbody></table>';
-  if (modoEstudianteActivo) {
-    html += '<div class="explicacion" style="margin-top:20px;">' +
-              '<strong>📘 ¿Cómo leer el Estado de Resultados?</strong>' +
-              '<ul>' +
-                '<li><strong>Ingresos operacionales:</strong> las ventas y servicios del giro del negocio.</li>' +
-                '<li><strong>Costos:</strong> lo que costó adquirir o producir lo que vendiste.</li>' +
-                '<li><strong>Margen Bruto:</strong> Ingresos − Costos.</li>' +
-                '<li><strong>Gastos operacionales:</strong> arriendo, sueldos, servicios básicos, etc.</li>' +
-                '<li><strong>Utilidad o Pérdida:</strong> la ganancia (o pérdida) final del negocio.</li>' +
-                '<li><strong>Importante:</strong> Este reporte NO es para el SII. Es para tu control interno.</li>' +
-              '</ul>' +
-            '</div>';
-  }
-  html += '</div>';
-  cont.innerHTML = html;
-}
-
-function exportarResultadosCSV() {
-  var data = calcularResultados();
-  if (data.totIngresos === 0 && data.totCostos === 0 && data.totGastos === 0) {
-    return alert('No hay datos para exportar.');
-  }
-  var desde = document.getElementById('res-desde').value;
-  var hasta = document.getElementById('res-hasta').value;
-  var csv = 'Estado de Resultados\n';
-  csv += 'Desde;' + (desde || 'inicio') + ';Hasta;' + (hasta || 'fin') + '\n\n';
-  csv += 'Concepto;Codigo;Monto\n';
-  csv += '"INGRESOS OPERACIONALES";;\n';
-  Object.keys(data.ingresos).sort().forEach(function(codigo) {
-    var cta = PLAN_CUENTAS[codigo] || { nombre: '?' };
-    csv += '"' + cta.nombre + '";' + codigo + ';' + data.ingresos[codigo] + '\n';
-  });
-  csv += '"TOTAL INGRESOS";;' + data.totIngresos + '\n\n';
-  csv += '"COSTOS";;\n';
-  Object.keys(data.costos).sort().forEach(function(codigo) {
-    var cta = PLAN_CUENTAS[codigo] || { nombre: '?' };
-    csv += '"' + cta.nombre + '";' + codigo + ';' + data.costos[codigo] + '\n';
-  });
-  csv += '"TOTAL COSTOS";;' + data.totCostos + '\n';
-  csv += '"MARGEN BRUTO";;' + data.margenBruto + '\n\n';
-  csv += '"GASTOS OPERACIONALES";;\n';
-  Object.keys(data.gastos).sort().forEach(function(codigo) {
-    var cta = PLAN_CUENTAS[codigo] || { nombre: '?' };
-    csv += '"' + cta.nombre + '";' + codigo + ';' + data.gastos[codigo] + '\n';
-  });
-  csv += '"TOTAL GASTOS";;' + data.totGastos + '\n\n';
-  csv += '"' + (data.utilidad >= 0 ? 'UTILIDAD' : 'PÉRDIDA') + ' DEL EJERCICIO";;' + data.utilidad + '\n';
-  var blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
-  var url = URL.createObjectURL(blob);
-  var a = document.createElement('a');
-  a.href = url;
-  a.download = 'estado_resultados_' + new Date().toISOString().slice(0,10) + '.csv';
-  a.click();
-  URL.revokeObjectURL(url);
-}
-
-document.getElementById('res-desde').addEventListener('change', renderResultados);
-document.getElementById('res-hasta').addEventListener('change', renderResultados);
-
-/* ===== INICIO ===== */
-cargarMovimientos();
-renderFormulario();
-renderMovimientos();
-console.log('✅ Sistema contable cargado. Con pestaña Borrado integrada.');
-console.log('📋 Plan de cuentas:', Object.keys(PLAN_CUENTAS).length, 'cuentas cargadas.');
-console.log('📋 Movimientos cargados:', movimientos.length);
-</script>
+        // Iniciar al cargar la página
+        generateInputs();
+    </script>
 </body>
 </html>
